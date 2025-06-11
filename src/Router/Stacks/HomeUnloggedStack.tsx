@@ -1,9 +1,9 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 
 import { useNavigation, useRoute } from '@react-navigation/native'
-import { heightPercentageToDP as hp } from 'react-native-responsive-screen'
 import HomeUnloggedPage from '../../Screens/HomeUnlogged/HomeUnloggedPage'
 import { useTabStyle } from '../../Services/hooks/NavigationTabStyle'
+import { hp } from '../../Services/hooks/ResponsivePercentage'
 import { useTranslation } from '../../Services/hooks/useTranslation'
 const HomeStackUnlogged = createNativeStackNavigator()
 
@@ -18,7 +18,7 @@ export default function HomeStackUnloggedScreen() {
             display: 'flex',
             backgroundColor: '#121212',
             borderTopWidth: 0,
-            height: hp('10%'),
+            height: hp('10%', { showPixel: false }),
         },
     })
 

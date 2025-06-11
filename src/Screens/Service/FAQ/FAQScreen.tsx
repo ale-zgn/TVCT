@@ -1,79 +1,78 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Animated, Easing, FlatList, Image, LayoutAnimation, Linking, Platform, Pressable, StyleSheet, Text, UIManager, View } from 'react-native'
-import { ComputerIcon, DownArrowIconBig, EmailIcon, LeftArrowIcon, PhoneIcon, WhatsAppIcon } from '../../../../assets/svgs/Svg'
+import { ComputerIcon, DownArrowIconBig, EmailIcon, LeftArrowIcon, PhoneIcon, RightArrowIcon3, WhatsAppIcon } from '../../../../assets/svgs/Svg'
 import { hp, wp } from '../../../Services/hooks/ResponsivePercentage'
 import { useTranslation } from '../../../Services/hooks/useTranslation'
 
-const faq = [
+const faqAr = [
     {
-        title: 'من هي رتال؟',
-        content:
-            'شركة سعودية لجيل جديد من المطورين العقاريين وأحد رواد التطوير العمراني في المملكة، تسابق الزمن في تطوير مجتمعات برؤى جديدة لترتقي بالبيئة العمرانية السعودية إلى أعلى مستوى، وتدعم جودة حياة الإنسان نحو مستقبل واعد يحقق الاستدامة والابتكار من أجل الأجيال القادمة.',
+        title: 'ما هو تطبيق تفقد المركبات الفنية؟',
+        content: 'هو تطبيق يتيح للمستخدمين حجز مواعيد لفحص سياراتهم في مراكز معتمدة، ومتابعة نتائج الفحص الفني بكل سهولة.',
     },
     {
-        title: 'ما هو هدفنـــا في التطوير العمراني؟',
-        content:
-            'استثمارنا الحقيقي والجوهري في نهضة العمران من أجل الإنسان، فهو هدف التطوير والتنمية ومحورها ليستمتع ويسعد بالعيش في بيئة مثالية راقية تلبي جميع احتياجاته وتحقق أمنياته.',
+        title: 'كيف يمكنني حجز موعد فحص؟',
+        content: 'يمكنك حجز الموعد من خلال التطبيق عبر تحديد نوع السيارة، المركز المناسب، واختيار الوقت والتاريخ المتاح.',
     },
     {
-        title: 'ما هو دورنا في رؤية المملكة 2030؟',
-        content:
-            'يعمل فريقنا بطموح ليساهم في تحقيق رؤية مملكتنا الطموحة 2030، وتمكننا برامج الرؤية من أداء دور حيوي في تعزيز الاقتصاد وتنوعه، ودعم برنامج الإسكان، وبرنامج جودة الحياة.',
+        title: 'هل أستطيع تعديل أو إلغاء الموعد بعد الحجز؟',
+        content: 'نعم، يمكنك تعديل أو إلغاء الموعد من خلال قسم "مواعيدي" في التطبيق قبل موعد الفحص بوقت كافٍ.',
     },
     {
-        title: 'ماذا يميزنا؟',
-        content:
-            'رتال تعمل مع نخبة من الشركات المتخصصة في كيان واحد، وهذا سيقدم لك منتج سكني بمعايير ومواصفات عالية، وأسعار تنافسية وتصاميم مميزة تلبي المتطلبات العصرية.',
+        title: 'ماذا أحتاج لإحضاره عند الفحص؟',
+        content: 'يجب إحضار المركبة نفسها، والرخصة الأصلية، وأي مستندات أخرى قد يطلبها المركز.',
     },
     {
-        title: 'ما هي نوعية المشاريع المطورة، قيد التطوير؟',
-        content: 'تنوع مشاريعنا إلى خمسة أنواع رئيسية: سكنية، تجارية، متعدد الاستخدامات، الضيافة، الأعمال، وتتسم بالحيوية والتنوع والشمول، والإتقان العمراني.',
+        title: 'هل يتم إرسال نتيجة الفحص عبر التطبيق؟',
+        content: 'نعم، ستصلك نتيجة الفحص فور توفرها على حسابك في التطبيق، ويمكنك تحميلها أو مشاركتها.',
     },
     {
-        title: 'ما هي رحلة التطوير التي يمر بها المجتمع السكني؟',
-        hasImage: true,
-        content: `يمر المجتمع السكني بخمسة مراحل رئيسية
-1: كوادر شبابية طموحة ترسم خارطة الطريق لتطوير مشاريع جديدة بأفكار وحلول مبتكرة، تخدم القطاع العقاري وتحقق أحد مستهدفات رؤية المملكة 2030 "برنامج الإسكان".
-2: تقدم رتال خدماتها عبر منظومة متكاملة من المراحل التي تبدأ مع شركة معمار للاستشارات الهندسية المتخصصة في التصميم المعماري وإعداد الرسومات الهندسية.
-3: لتكون المرحلة الثانية مع شركة BCC أو نساج، متخصصين في إدارة المشاريع والإشراف على الموقع وإدارة التشييد.بـاختلاف أنواعهـــا كالمشـــاريع الســـكنية، والتجارية، وغيرها.
-4: لتكون المرحلة الثالثة مع شركة LDPI العالمية المتخصصة في تصميم الإضاءة المعمارية.
-5: لتكون المرحلة الأخيرة مع شركة أراك، متخصصة في التصميم المعماري والداخلي.`,
+        title: 'هل الفحص يشمل كل أجزاء السيارة؟',
+        content: 'نعم، يشمل الفحص الفني الكامل المحرك، المكابح، الإضاءة، نظام العادم، والإطارات وغيرها حسب نوع الفحص.',
     },
     {
-        title: 'أين تقع مجتمعات رتال؟',
-        content: 'تتوزع مشاريع ومجتمعات رتال في مدن المملكة المنطقة الوسطى و المنطقة الشرقية و المنطقة الغربية.',
+        title: 'هل أستطيع الدفع من خلال التطبيق؟',
+        content: 'نعم، يوفر التطبيق خيارات دفع إلكتروني آمنة لتسهيل عملية الدفع المسبق.',
     },
     {
-        title: 'ما هي آلية حجز الوحدة السكنية؟',
-        content: `تبدأ رحلتك معنا في تملك منزل العمر بالخطوة الأولى، وهي تسجيل اهتمامك من هنا:
-https://retal.com.sa/register-your-interest/`,
-    },
-    {
-        title: 'كيف يمكنني معرفة المشاريع الجديدة؟',
-        content: 'يتم الإعلان عن المشاريع الجديدة لرتال عبر حسابات التواصل الاجتماعي.',
-        icon: true,
-    },
-    {
-        title: 'ما هي المعايير والمواصفات المعتمدة لدى رتال؟',
-        content:
-            'أولويتنا تلبية تطلعات كل عائلة بامتلاك مسكن راقي وعصري بأعلى معايير الجودة والمواصفات التي ترقى لتطلعات عملائنا وتواكب التطور الحالي، مطبقين كود البناء السعودي في البناء والتشييد لضمان السلامة والصحة العامة.',
-    },
-    {
-        title: 'ما هي الجهات التمويلية المعتمدة لدى رتال؟',
-        content: `نعمل مع شركاء استراتيجيين لتوفير حلول تمويلية ميسرة لعملائنا.
-البنوك المعتمدة
-( مصرف الراجحي، البنك الأهلي، بنك الإنماء،  بنك الرياض، البنك العربي، البنك الفرنسي، بنك البلاد،  البنك الأول).`,
-    },
-    {
-        title: 'هل يمكن الحصول على دعم من وزارة الإسكان عند شراء منزل من رتال؟',
-        content: 'يمكن لجميع المواطنين السعوديين المؤهلين والمستحقين للدعم من برنامج سكني لجميع مشاريعنا السكنية.',
-    },
-    {
-        title: 'أين يُدرج سهم شركة رتال؟',
-        content:
-            "يُدرج سهم شركة رتال للتطوير العمراني في أكبر سوق مالية في منطقة دول مجلس التعاون الخليجي ومنطقة الشرق الأوسط وشمال افريقيا، 'تداول السعودية'.",
+        title: 'ماذا أفعل إذا رسبت السيارة في الفحص؟',
+        content: 'ستظهر لك الملاحظات والأسباب، ويمكنك إجراء الإصلاحات المطلوبة ثم إعادة جدولة فحص جديد.',
     },
 ]
+const faqEn = [
+    {
+        title: 'What is the Technical Vehicle Check app?',
+        content: 'It’s an app that allows users to book inspection appointments at certified centers and track vehicle test results with ease.',
+    },
+    {
+        title: 'How can I book an inspection appointment?',
+        content: 'You can book through the app by selecting your vehicle type, preferred center, and choosing an available date and time.',
+    },
+    {
+        title: 'Can I modify or cancel my appointment?',
+        content: 'Yes, you can modify or cancel your appointment from the "My Appointments" section in the app before the scheduled time.',
+    },
+    {
+        title: 'What should I bring to the inspection?',
+        content: 'You need to bring the vehicle, original registration, and any documents required by the center.',
+    },
+    {
+        title: 'Will I receive the test results in the app?',
+        content: 'Yes, your test result will be available in your account once ready, and you can download or share it directly from the app.',
+    },
+    {
+        title: 'Does the inspection cover all parts of the car?',
+        content: 'Yes, the technical inspection includes the engine, brakes, lights, exhaust system, tires, and more depending on the test type.',
+    },
+    {
+        title: 'Can I pay through the app?',
+        content: 'Yes, the app offers secure online payment options for easy and fast pre-payment.',
+    },
+    {
+        title: 'What happens if my vehicle fails the test?',
+        content: 'You’ll see detailed notes and reasons. You can repair the issues and then reschedule a new inspection.',
+    },
+]
+
 const imageUrls = [
     require('../../../../assets/images/Image1.jpeg'),
     require('../../../../assets/images/Image2.png'),
@@ -110,9 +109,9 @@ export default function FAQ() {
         <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
             {/* {searchBar} */}
             <FlatList
-                data={faq}
+                data={selectedLanguage === 'ar' ? faqAr : faqEn}
                 renderItem={({ item, index }) => <FAQItem index={index} title={item.title} content={item.content} icon={item.icon} hasImage={item.hasImage} />}
-                contentContainerStyle={{ paddingBottom: hp('2%') }}
+                contentContainerStyle={{ paddingBottom: hp('2%', { showPixel: false }) }}
             />
         </Animated.View>
     )
@@ -168,8 +167,8 @@ function FAQItem({ title, content, icon, hasImage, index }: Props) {
         setOpen(!open)
     }
 
-    const getTitleStyle = () => (selectedLanguage === 'en' ? { textAlign: 'right' } : { textAlign: 'left' })
-    const getContentStyle = () => (selectedLanguage === 'en' ? { textAlign: 'right' } : { textAlign: 'left' })
+    const getTitleStyle = () => (selectedLanguage === 'en' ? { textAlign: 'left' } : { textAlign: 'left' })
+    const getContentStyle = () => (selectedLanguage === 'en' ? { textAlign: 'left' } : { textAlign: 'left' })
 
     const renderClickableLinks = (text: string) => {
         const regex = /(https?:\/\/[^\s]+)/g
@@ -209,7 +208,12 @@ function FAQItem({ title, content, icon, hasImage, index }: Props) {
                                     (imageUrl, imgIndex) =>
                                         hasImage &&
                                         imageUrl && (
-                                            <Image key={imgIndex} source={imageUrl} resizeMode='contain' style={{ width: hp('10%'), height: hp('8%') }} />
+                                            <Image
+                                                key={imgIndex}
+                                                source={imageUrl}
+                                                resizeMode='contain'
+                                                style={{ width: hp('10%', { showPixel: false }), height: hp('8%', { showPixel: false }) }}
+                                            />
                                         )
                                 )}
                             </View>
@@ -229,13 +233,13 @@ function FAQItem({ title, content, icon, hasImage, index }: Props) {
                 styles.questionContainer,
                 {
                     alignItems: selectedLanguage === 'en' ? 'flex-end' : 'flex-start',
-                    borderBottomWidth: index < faq.length - 1 ? 1 : undefined,
+                    borderBottomWidth: index < faqAr.length - 1 ? 1 : undefined,
                     borderBottomColor: '#E5E5E5',
                 },
             ]}>
             <View style={styles.titleContainer}>
-                {selectedLanguage === 'en' ? !open ? <LeftArrowIcon /> : <DownArrowIconBig /> : undefined}
                 <Text style={[styles.title, getTitleStyle(), { color: open ? '#85553A' : '#121212' }]}>{renderClickableLinks(title)}</Text>
+                {selectedLanguage === 'en' ? !open ? <RightArrowIcon3 /> : <DownArrowIconBig /> : undefined}
                 {selectedLanguage === 'ar' ? !open ? <LeftArrowIcon /> : <DownArrowIconBig /> : undefined}
             </View>
 
@@ -245,8 +249,7 @@ function FAQItem({ title, content, icon, hasImage, index }: Props) {
                     transform: [{ scale: scaleAnim }, { translateX: translateYAnim }],
                     overflow: 'hidden',
                 }}>
-                {open &&
-                    (hasImage ? renderContentWithImages(content) : <Text style={[styles.answer, getContentStyle()]}>{renderClickableLinks(content)}</Text>)}
+                {open && <Text style={[styles.answer, getContentStyle()]}>{renderClickableLinks(content)}</Text>}
 
                 {icon && open && (
                     <View style={styles.iconContainer}>
@@ -277,40 +280,40 @@ const styles = StyleSheet.create({
     titleContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        width: wp(100),
-        paddingHorizontal: wp(5),
-        paddingVertical: wp(6),
+        width: wp('100%', { showPixel: false }),
+        paddingHorizontal: wp('5%', { showPixel: false }),
+        paddingVertical: wp('6%', { showPixel: false }),
     },
     imageContainer: {
         display: 'flex',
         flexDirection: 'row',
-        width: wp(50),
+        width: wp('50%', { showPixel: false }),
         justifyContent: 'center',
-        gap: wp(7),
-        paddingVertical: hp(1),
+        gap: wp('7%', { showPixel: false }),
+        paddingVertical: hp('1%', { showPixel: false }),
     },
     title: {
-        fontSize: wp(5),
+        fontSize: wp('5%', { showPixel: false }),
         fontFamily: 'medium',
         color: '#121212',
     },
-    link: { color: '#49499b', textDecorationLine: 'underline' },
+    link: { color: '#49499b', textDecorationLine: 'underline', textAlign: 'left' },
 
     iconContainer: {
-        paddingHorizontal: wp(4.75),
-        paddingBottom: wp(3),
+        paddingHorizontal: wp('4.75%', { showPixel: false }),
+        paddingBottom: wp('3%', { showPixel: false }),
         display: 'flex',
         flexDirection: 'row',
-        gap: wp(3),
+        gap: wp('3%', { showPixel: false }),
         alignItems: 'center',
         alignSelf: 'flex-end',
     },
     answer: {
-        paddingHorizontal: wp(5),
-        fontSize: wp(5),
+        paddingHorizontal: wp('5%', { showPixel: false }),
+        fontSize: wp('5%', { showPixel: false }),
         fontFamily: 'regular',
         color: '#666666',
-        paddingBottom: wp(2),
+        paddingBottom: wp('2%', { showPixel: false }),
     },
     questionContainer: {
         justifyContent: 'space-between',

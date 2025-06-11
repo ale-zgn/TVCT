@@ -1,6 +1,6 @@
-import { View, Text, Pressable, StyleSheet, ViewStyle, DimensionValue } from "react-native"
-import React from "react"
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen"
+import React from 'react'
+import { DimensionValue, Pressable, StyleSheet, Text, View } from 'react-native'
+import { wp } from '../../Services/hooks/ResponsivePercentage'
 
 interface HomeDetailsProps {
     icon: any
@@ -10,17 +10,21 @@ interface HomeDetailsProps {
     swidth?: DimensionValue | undefined
 }
 
-export const HomeDetails = ({ icon, name, value, selectedSort, swidth = "50%" }: HomeDetailsProps) => {
+export const HomeDetails = ({ icon, name, value, selectedSort, swidth = '50%' }: HomeDetailsProps) => {
     let handleValueDisplay = (value: any) => {
         if (value instanceof Array) {
             return <Text style={styles.valueText}>{value[0]}</Text>
         } else {
-            return <Text style={styles.valueText}>{value || "/"}</Text>
+            return <Text style={styles.valueText}>{value || '/'}</Text>
         }
     }
 
     return (
-        <View style={[styles.HomeDetailContainer, { marginRight: selectedSort ? wp("4%") : wp("2%"), width: swidth }]}>
+        <View
+            style={[
+                styles.HomeDetailContainer,
+                { marginRight: selectedSort ? wp('4%', { showPixel: false }) : wp('2%', { showPixel: false }), width: swidth },
+            ]}>
             {selectedSort && (
                 <View style={styles.HomeDetailsIcon}>
                     <Pressable style={[styles.pressable, { width: 40, height: 40 }]}>{icon}</Pressable>
@@ -28,7 +32,7 @@ export const HomeDetails = ({ icon, name, value, selectedSort, swidth = "50%" }:
             )}
 
             <View>
-                <Text style={{ color: "#666666", textAlign: "left", fontSize: wp("4%"), fontFamily: "regular" }}>{name}</Text>
+                <Text style={{ color: '#666666', textAlign: 'left', fontSize: wp('4%', { showPixel: false }), fontFamily: 'regular' }}>{name}</Text>
                 {handleValueDisplay(value)}
             </View>
         </View>
@@ -45,15 +49,19 @@ export const HomeDetails2 = ({ icon, name, value, selectedSort, swidth }: HomeDe
     }
 
     return (
-        <View style={[styles.HomeDetailContainer2, { marginRight: selectedSort ? wp("4%") : wp("2%"), width: swidth }]}>
+        <View
+            style={[
+                styles.HomeDetailContainer2,
+                { marginRight: selectedSort ? wp('4%', { showPixel: false }) : wp('2%', { showPixel: false }), width: swidth },
+            ]}>
             {selectedSort && (
                 <View>
-                    <Pressable style={[styles.pressable, { width: 40, height: 40 }, { marginBottom: wp("2%") }]}>{icon}</Pressable>
+                    <Pressable style={[styles.pressable, { width: 40, height: 40 }, { marginBottom: wp('2%', { showPixel: false }) }]}>{icon}</Pressable>
                 </View>
             )}
 
-            <View style={{ alignItems: "center" }}>
-                <Text style={{ color: "#666666", textAlign: "center", fontSize: wp("4%"), fontFamily: "regular" }}>{name}</Text>
+            <View style={{ alignItems: 'center' }}>
+                <Text style={{ color: '#666666', textAlign: 'center', fontSize: wp('4%', { showPixel: false }), fontFamily: 'regular' }}>{name}</Text>
                 {handleValueDisplay(value)}
             </View>
         </View>
@@ -62,38 +70,37 @@ export const HomeDetails2 = ({ icon, name, value, selectedSort, swidth }: HomeDe
 
 const styles = StyleSheet.create({
     container: {
-        flexDirection: "row",
-        alignItems: "center",
+        flexDirection: 'row',
+        alignItems: 'center',
         flex: 1,
     },
     HomeDetailsIcon: {
-        marginRight: wp("2%"),
+        marginRight: wp('2%', { showPixel: false }),
     },
     HomeDetailContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        bacllgroundColor: "red",
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     HomeDetailContainer2: {
-        flexDirection: "column",
-        alignItems: "center",
+        flexDirection: 'column',
+        alignItems: 'center',
     },
     pressable: {
         borderRadius: 100,
-        backgroundColor: "#F9F6F5",
-        alignItems: "center",
-        justifyContent: "center",
+        backgroundColor: '#F9F6F5',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     valueText: {
-        color: "#121212",
-        textAlign: "left",
-        fontSize: wp("3%"),
+        color: '#121212',
+        textAlign: 'left',
+        fontSize: wp('3%', { showPixel: false }),
         // fontFamily: "medium"
     },
     valueText2: {
-        color: "#121212",
-        textAlign: "left",
-        fontSize: wp("3%"),
+        color: '#121212',
+        textAlign: 'left',
+        fontSize: wp('3%', { showPixel: false }),
         // fontFamily: "medium"
     },
 })

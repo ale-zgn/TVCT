@@ -11,10 +11,10 @@ import { Asset } from 'expo-asset'
 import * as LinkingExpo from 'expo-linking'
 
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native'
+import { getFocusedRouteNameFromRoute, NavigationContainer, NavigationContainerRef } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import * as SecureStore from 'expo-secure-store'
-import { TabDocumentIcon, TabHomeIcon, TabPropertyIcon, TabSearchIcon, TabServiceIcon } from '../../assets/svgs/TabSvg'
+import { TabHomeIcon, TabPropertyIcon, TabSearchIcon, TabServiceIcon } from '../../assets/svgs/TabSvg'
 import CloseHeaderLeft from '../Components/Header/CloseHeaderLeft'
 import DefaultHeaderLeft from '../Components/Header/DefaultHeaderLeft'
 import { headerTitleStyle } from '../Screens/Service/HeaderTitleStyle'
@@ -25,8 +25,7 @@ import ServiceStack from './Stacks/ServiceStack'
 
 import { useSharedValue } from 'react-native-reanimated'
 
-import { ResizeMode, Video } from 'expo-av'
-import VideoPlayer from '../Components/Shared/VideoPlayer'
+import { Video } from 'expo-av'
 import LanguageModal from '../Screens/Modals/LanguageModal'
 import PersonalInformationModal from '../Screens/Modals/PersonalInformationModal'
 import ProfileModal from '../Screens/Modals/ProfileModal'
@@ -106,20 +105,34 @@ function TabBarLabel({ route, color, opacity }: { route: string; color?: string;
 }
 
 function TabNavigator() {
+    const tabHiddenScreens = ['CreateAccount', 'TutorialPage', 'PrivacyPolicy', 'Contact', 'FAQ', 'PropertyDetails', 'MyPropertiesDetails', 'AddCarPage']
+
+    const getTabBarStyle = (route) => {
+        const routeName = getFocusedRouteNameFromRoute(route) ?? route.name
+        console.log('routeName', routeName)
+
+        if (tabHiddenScreens.includes(routeName)) {
+            console.log('eeee')
+
+            return { display: 'none', height: 0 }
+        }
+        return {
+            display: 'flex',
+            height: hp('10%'),
+            position: 'absolute',
+        }
+    }
+
     return (
         <Tab.Navigator
             screenOptions={({ route }) => ({
-                //@ts-ignore
                 lazy: false,
                 headerShown: false,
-                tabBarStyle: {
-                    display: 'flex',
-                },
+                tabBarStyle: getTabBarStyle(route),
                 tabBarItemStyle: {
                     marginTop: 8,
                     height: hp('8%'),
                 },
-
                 tabBarIcon: ({ focused }) => {
                     switch (route.name) {
                         case 'HomeStack':
@@ -128,44 +141,33 @@ function TabNavigator() {
                             return <TabPropertyIcon color={focused ? 'black' : '#666666'} opacity={focused ? 1 : 0.5} />
                         case 'SearchStack':
                             return <TabSearchIcon color={focused ? 'black' : '#666666'} opacity={focused ? 1 : 0.5} />
-                        case 'DocumentStack':
-                            return <TabDocumentIcon color={focused ? 'black' : '#666666'} opacity={focused ? 1 : 0.5} />
                         case 'ServiceStack':
                             return <TabServiceIcon color={focused ? 'black' : '#666666'} opacity={focused ? 1 : 0.5} />
                         default:
-                            break
+                            return null
                     }
                 },
-                tabBarInactiveTintColor: '#666666',
-                tabBarActiveTintColor: 'black',
                 tabBarLabel: ({ focused }) => {
                     switch (route.name) {
                         case 'HomeStack':
                             return <TabBarLabel route='Home' opacity={focused ? 1 : 0.5} />
                         case 'MyPropertyStack':
-                            return <TabBarLabel route='Properties' opacity={focused ? 1 : 0.5} />
+                            return <TabBarLabel route='Vehicules' opacity={focused ? 1 : 0.5} />
                         case 'SearchStack':
-                            return <TabBarLabel route='Search' opacity={focused ? 1 : 0.5} />
-                        case 'DocumentStack':
-                            return <TabBarLabel route='Documents' opacity={focused ? 1 : 0.5} />
+                            return <TabBarLabel route='Visits' opacity={focused ? 1 : 0.5} />
                         case 'ServiceStack':
                             return <TabBarLabel route='Services' opacity={focused ? 1 : 0.5} />
                         default:
-                            break
+                            return null
                     }
                 },
+                tabBarInactiveTintColor: '#666666',
+                tabBarActiveTintColor: 'black',
             })}
             sceneContainerStyle={{ overflow: 'visible' }}>
-            <Tab.Screen
-                name='HomeStack'
-                options={{
-                    headerShadowVisible: false,
-                }}
-                component={HomeStack}
-            />
+            <Tab.Screen name='HomeStack' component={HomeStack} />
             <Tab.Screen name='MyPropertyStack' component={MyPropertyStack} />
             <Tab.Screen name='SearchStack' component={SearchStack} />
-
             <Tab.Screen name='ServiceStack' component={ServiceStack} />
         </Tab.Navigator>
     )
@@ -176,7 +178,6 @@ export default function Router() {
 
     const [appAssetsLoaded, setAssetsAppLoaded] = useState(false)
 
-    const [isVideoVisible, setIsVideoVisible] = useState(true)
     const opacity = useSharedValue(1)
     const { language: selectedLanguage } = useTranslation()
 
@@ -234,10 +235,6 @@ export default function Router() {
         }
     }, [navigationScreen])
 
-    const onVideoEnd = () => {
-        setIsVideoVisible(false)
-    }
-
     const onLayoutRootView = useCallback(async () => {
         if (appAssetsLoaded) {
             await SplashScreen.hideAsync()
@@ -250,15 +247,6 @@ export default function Router() {
 
     return (
         <>
-            <VideoPlayer
-                showLoader={false}
-                source={require('../../assets/intro.mp4')}
-                isVisible={isVideoVisible}
-                onVideoEnd={onVideoEnd}
-                isMuted={true}
-                resizeMode={ResizeMode.COVER}
-            />
-
             <View onLayout={onLayoutRootView} style={[selectedLanguage === 'en' ? styles.ltr : styles.rtl, { flex: 1 }]}>
                 <StatusBar barStyle='dark-content' />
                 <NavigationContainer

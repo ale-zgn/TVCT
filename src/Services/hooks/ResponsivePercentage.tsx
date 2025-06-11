@@ -1,10 +1,11 @@
 import { heightPercentageToDP, widthPercentageToDP } from 'react-native-responsive-screen'
 
-// Always return an integer
-export const wp = (percentage: string | number): number => {
-    return Math.round(widthPercentageToDP(percentage))
+export const wp = (percentage: string | number, showPixel?: { showPixel: boolean } | undefined): any => {
+    let value = Math.round(widthPercentageToDP(percentage))
+    return showPixel != undefined ? value : value + 'px'
 }
 
-export const hp = (percentage: string | number): number => {
-    return Math.round(heightPercentageToDP(percentage))
+export const hp = (percentage: string | number, showPixel?: { showPixel: boolean } | undefined): any => {
+    let value = Math.round(heightPercentageToDP(percentage))
+    return showPixel != undefined ? value : value + 'px'
 }

@@ -99,7 +99,7 @@ export default function LoginPage() {
                     rules={{ required: translate('Password is required') }}
                     render={({ field: { onChange, value } }) => (
                         <TextInput
-                            style={styles.inputField}
+                            style={{ ...styles.inputField, marginBottom: hp('5%') }}
                             placeholder={translate('Enter your password')}
                             value={value}
                             onChangeText={onChange}
@@ -202,6 +202,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         height: hp('8%'),
         width: wp('90%'),
+        borderRadius: 10,
         alignSelf: 'center',
         backgroundColor: '#F2F2F2',
         flexDirection: 'row',

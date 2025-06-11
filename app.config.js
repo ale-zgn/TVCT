@@ -1,8 +1,8 @@
 module.exports = ({ config }) => {
     return {
         expo: {
-            name: 'car-visit',
-            slug: 'car-visit',
+            name: 'TVCT',
+            slug: 'TVCT',
             version: '1.0.0',
             orientation: 'portrait',
             icon: './assets/icon.png',

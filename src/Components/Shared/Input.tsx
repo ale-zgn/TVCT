@@ -1,8 +1,8 @@
-import { View, StyleSheet, TextInput, Text } from "react-native"
-import React from "react"
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen"
-import { Controller } from "react-hook-form"
-import { useTranslation } from "../../Services/hooks/useTranslation"
+import React, { JSX } from 'react'
+import { Controller } from 'react-hook-form'
+import { StyleSheet, Text, TextInput, View } from 'react-native'
+import { hp, wp } from '../../Services/hooks/ResponsivePercentage'
+import { useTranslation } from '../../Services/hooks/useTranslation'
 
 interface InputProps {
     placeholder: string
@@ -37,12 +37,12 @@ export default function Input({ placeholder, control, name, rules, errors, conta
                             style={[
                                 styles.input,
                                 {
-                                    width: icon ? wp(`${width}% - 50`) : wp(`${width}%`),
+                                    width: icon ? wp(`${width}% - 50`, { showPixel: false }) : wp(`${width}%`, { showPixel: false }),
                                 },
                             ]}
-                            placeholderTextColor={"#666666"}
+                            placeholderTextColor={'#666666'}
                             onSubmitEditing={onSubmitEditing}
-                            textAlign={language == "ar" ? "right" : "left"}
+                            textAlign={language == 'ar' ? 'right' : 'left'}
                         />
                     )}
                     name={name}
@@ -56,32 +56,32 @@ export default function Input({ placeholder, control, name, rules, errors, conta
 
 const styles = StyleSheet.create({
     container: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        height: hp("7.25%"),
-        backgroundColor: "#F2F2F2",
-        paddingHorizontal: wp("3"),
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        height: hp('7.25%', { showPixel: false }),
+        backgroundColor: '#F2F2F2',
+        paddingHorizontal: wp('3', { showPixel: false }),
     },
     input: {
-        fontFamily: "regular",
-        fontSize: wp("5%"),
-        width: "100%",
-        color: "#121212",
+        fontFamily: 'regular',
+        fontSize: wp('4.5%', { showPixel: false }),
+        width: '100%',
+        color: '#121212',
         flex: 1,
     },
     inputLabel: {
-        fontFamily: "regular",
-        fontSize: wp("5.5%"),
-        color: "#666666",
-        marginBottom: hp("1%"),
-        textAlign: "left",
+        fontFamily: 'regular',
+        fontSize: wp('5%', { showPixel: false }),
+        color: '#666666',
+        marginBottom: hp('1%', { showPixel: false }),
+        textAlign: 'left',
     },
     error: {
-        color: "#FF0000",
-        fontSize: wp("4.5%"),
-        fontFamily: "regular",
-        marginTop: hp("1%"),
-        textAlign: "left",
+        color: '#FF0000',
+        fontSize: wp('4.5%', { showPixel: false }),
+        fontFamily: 'regular',
+        marginTop: hp('1%', { showPixel: false }),
+        textAlign: 'left',
     },
 })

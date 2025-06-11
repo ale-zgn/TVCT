@@ -5,17 +5,16 @@ import { AppState, AppStateStatus, Dimensions, FlatList, Pressable, SafeAreaView
 import { ALERT_TYPE, Toast } from 'react-native-alert-notification'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
 import {
-    CalendarIcon,
     CarIcon,
     CheckShieldIcon,
+    ContactIcon,
     FamilyCarIcon,
+    FAQIcon,
     LeftArrowIcon,
     MinibusCarIcon,
-    PaymentIcon,
     PickupCarIcon,
     PossibilitiesIcon,
-    RaiseTicketIcon,
-    ReferAFriendIcon,
+    PrivacyPolicyIcon,
     RightArrowIcon,
     ServicesIcon,
     SuvCarIcon,
@@ -74,21 +73,19 @@ const DriveInformations: {
     icon: ComponentType<{ color?: string }>
 }[] = [
     {
-        title: 'Nous assurons vos arrières',
+        title: 'We’ve Got You Covered',
         content:
-            'Ayez l’esprit tranquille en sachant que tous les membres de la communauté Qarmee passent par notre processus de vérification et que l’assistance routière et le service clients sont facilement joignables.',
+            'Rest easy knowing that every vehicle undergoes thorough technical inspection, and our support team is always within reach for assistance or guidance.',
         icon: ServicesIcon,
     },
     {
-        title: 'Possibilité infinies',
-        content:
-            'Choisissez parmi des centaines de modèles que vous ne trouverez nulle part ailleurs. Vous pouvez récupérer la voiture vous-même ou vous la faire livrer là où vous le souhaitez.',
+        title: 'Endless Possibilities',
+        content: 'Access detailed reports, set reminders, and book inspection appointments — all in one place, wherever you are.',
         icon: PossibilitiesIcon,
     },
     {
-        title: 'Conduisez en toute confiance',
-        content:
-            'Conduisez en toute confiance grâce aux options qui comprennent une assurance responsabilités civile, ainsi que différents niveaux d’assurance pour les dommages matériels d‘AXA France, ce qui limite votre responsabilité en cas de dommages à la voiture de l’hôte pendant votre voyage.',
+        title: 'Drive with Confidence',
+        content: 'Ensure your vehicle meets all safety and legal standards with certified inspections, helping you stay compliant and safe on the road.',
         icon: CheckShieldIcon,
     },
 ]
@@ -194,8 +191,6 @@ export default function HomeScreen() {
     }, [value])
 
     useEffect(() => {
-        registerForPushToken()
-
         getItemAsync('token').then(async (token) => {
             if (token) {
                 try {
@@ -240,57 +235,45 @@ export default function HomeScreen() {
                         horizontal
                         data={[
                             {
-                                name: translate('Raise ticket'),
-                                backgroundColor: '#db6c6c1a',
-                                icon: <RaiseTicketIcon />,
+                                name: translate('FAQ'),
+                                icon: <FAQIcon />,
                                 onPress: () => {
                                     //@ts-ignore
                                     navigation.navigate('ServiceStack')
                                     setTimeout(() => {
                                         //@ts-ignore
-                                        navigation.navigate('RaiseATicket')
+                                        navigation.navigate('FAQ')
                                     }, 100)
                                 },
+                                backgroundColor: '#FCF0FB',
                             },
                             {
-                                name: translate('Appointments'),
-                                backgroundColor: '#836ddd36',
-                                icon: <CalendarIcon />,
+                                name: translate('Privacy policy'),
+                                icon: <PrivacyPolicyIcon />,
                                 onPress: () => {
                                     //@ts-ignore
                                     navigation.navigate('ServiceStack')
                                     setTimeout(() => {
                                         //@ts-ignore
-                                        navigation.navigate('Appointments')
+                                        navigation.navigate('PrivacyPolicy')
                                     }, 100)
                                 },
-                            },
-                            {
-                                name: translate('Payments'),
-                                icon: <PaymentIcon />,
-                                backgroundColor: '#E9F2FA',
-                                onPress: () => {
-                                    //@ts-ignore
-                                    navigation.navigate('ServiceStack')
-                                    setTimeout(() => {
-                                        //@ts-ignore
-                                        navigation.navigate('PaymentScreen')
-                                    }, 100)
-                                },
-                            },
 
+                                backgroundColor: '#E0F7E5',
+                            },
                             {
-                                name: translate('Refer a friend'),
-                                backgroundColor: '#e5903b36',
-                                icon: <ReferAFriendIcon />,
+                                name: translate('Contact'),
                                 onPress: () => {
                                     //@ts-ignore
                                     navigation.navigate('ServiceStack')
                                     setTimeout(() => {
                                         //@ts-ignore
-                                        navigation.navigate('ReferAFriend')
+                                        navigation.navigate('Contact')
                                     }, 100)
                                 },
+
+                                icon: <ContactIcon />,
+                                backgroundColor: '#FFFAE8',
                             },
                         ]}
                         renderItem={({ item }) => <ServiceItem service={item} />}
@@ -311,45 +294,6 @@ export default function HomeScreen() {
                         ListEmptyComponent={() => (
                             <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1 }}>
                                 <Text style={{ fontSize: wp('4.5%'), fontFamily: 'regular' }}>{translate('No properties found')}</Text>
-                            </View>
-                        )}
-                    />
-                    <Title
-                        value={translate('Featured properties')}
-                        viewAll
-                        action={() => {
-                            //@ts-ignore
-                            navigation.navigate('SearchStack')
-                        }}
-                    />
-                    <FlatList
-                        data={carsTypes}
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={{ paddingHorizontal: wp('4.5%'), marginTop: wp('4.5%') }}
-                        renderItem={({ item }) => (
-                            <View style={{ alignItems: 'center', gap: 8 }}>
-                                <View
-                                    style={{
-                                        borderWidth: 1,
-                                        borderColor: '#1e1e1e', // assuming 'shadowBlack' is a dark color
-                                        width: wp('20%'),
-                                        height: wp('20%'),
-                                        marginRight: wp('4.5%'),
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        borderRadius: 50, // full rounding for a circle
-                                    }}>
-                                    <item.icon />
-                                </View>
-                                <Text
-                                    style={{
-                                        color: '#0b163f', // assuming 'ultraDarkBlue'
-                                        fontWeight: '500',
-                                        fontSize: 12,
-                                    }}>
-                                    {item.name}
-                                </Text>
                             </View>
                         )}
                     />
