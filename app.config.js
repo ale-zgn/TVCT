@@ -1,11 +1,11 @@
 module.exports = ({ config }) => {
     return {
         expo: {
-            name: 'TVCT',
+            name: '',
             slug: 'TVCT',
             version: '1.0.0',
             orientation: 'portrait',
-            icon: './assets/icon.png',
+            icon: './assets/splash-icon.png',
             scheme: 'carvisit',
             userInterfaceStyle: 'automatic',
             jsEngine: 'hermes',
@@ -15,7 +15,7 @@ module.exports = ({ config }) => {
             },
             android: {
                 adaptiveIcon: {
-                    foregroundImage: './assets/adaptive-icon.png',
+                    foregroundImage: './assets/splash-icon.png',
                     backgroundColor: '#ffffff',
                 },
                 edgeToEdgeEnabled: true,
@@ -28,7 +28,7 @@ module.exports = ({ config }) => {
                 [
                     'expo-splash-screen',
                     {
-                        image: './assets/splash.png',
+                        image: './assets/splash-icon.png',
                         imageWidth: 200,
                         resizeMode: 'contain',
                         backgroundColor: '#ffffff',

@@ -1,21 +1,21 @@
 import { useIsFocused, useNavigation } from '@react-navigation/native'
 import * as SecureStore from 'expo-secure-store'
-import React, { useEffect } from 'react'
+import React from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { Keyboard, Pressable, SafeAreaView, StatusBar, StyleSheet, Text, TextInput, View } from 'react-native'
+import { ALERT_TYPE, Toast } from 'react-native-alert-notification'
 import PhoneInput from 'react-native-phone-input'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
+import { useAuthMutation } from 'src/Services/API'
 import MaintButton from '../../Components/Shared/MaintButton'
-import { useAuthMutation, useGetUserMeQuery } from '../../Services/API'
 import { useTranslation } from '../../Services/hooks/useTranslation'
 
 export default function LoginPage() {
     const navigation = useNavigation()
     const { translate, language } = useTranslation()
     const isFocused = useIsFocused()
-
     const [auth, authMutation] = useAuthMutation()
-    const { data: user, refetch: userRefetch, isLoading: userIsLoading } = useGetUserMeQuery({})
+
     const phoneInputRef = React.useRef<PhoneInput>(null)
 
     const {
@@ -30,39 +30,23 @@ export default function LoginPage() {
         mode: 'onChange',
     })
 
-    useEffect(() => {
-        if (user && isFocused) {
-            if (user?.first_name && user?.last_name && user?.first_visit === false) {
-                //@ts-ignore
-                navigation.replace('TabNavigator')
-            } else {
-                //@ts-ignore
-                navigation.replace('CreateAccount')
-            }
-        }
-    }, [user, isFocused])
-
     const onSubmit = async (data: { email: string; password: string }) => {
         try {
-            await SecureStore.setItemAsync('token', 'response.data.token')
-            navigation.replace('TabNavigator')
-
-            /* await auth({
+            await auth({
                 email: data.email,
                 password: data.password,
             })
-                .unwrap()
                 .then(async (response) => {
-                    await SecureStore.setItemAsync("token", response.data.token)
-                    userRefetch()
+                    await SecureStore.setItemAsync('token', response.data.token)
+                    navigation.replace('TabNavigator')
                 })
                 .catch(() => {
                     Toast.show({
                         type: ALERT_TYPE.DANGER,
-                        title: translate("Unauthorized access"),
-                        textBody: translate("Invalid email or password."),
+                        title: translate('Unauthorized access'),
+                        textBody: translate('Invalid email or password.'),
                     })
-                }) */
+                })
         } catch (error) {
             console.error('Login error:', error)
         }

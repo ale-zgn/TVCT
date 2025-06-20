@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/native'
 import moment from 'moment'
-import React, { ComponentType, JSX, useEffect, useState } from 'react'
-import { AppState, AppStateStatus, Dimensions, FlatList, Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native'
+import React, { ComponentType, JSX, useEffect } from 'react'
+import { Dimensions, FlatList, Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native'
 import { ALERT_TYPE, Toast } from 'react-native-alert-notification'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
 import {
@@ -22,17 +22,7 @@ import {
 } from '../../../assets/svgs/Svg'
 import Title from '../../Components/Shared/Title'
 import useSearchBar from '../../Components/Shared/useSearchBar'
-import { ApiNewsInterface } from '../../Interfaces/API'
-import {
-    API_RETAL,
-    useGetArticlesQuery,
-    useGetPropertiesQuery,
-    useGetUserPropertiesQuery,
-    useLazyGetUserDocumentsQuery,
-    useLazyGetUserPropertiesQuery,
-    useLazyGetUserTicketsQuery,
-    useShowAnnouncementvideoQuery,
-} from '../../Services/API'
+
 import { useTranslation } from '../../Services/hooks/useTranslation'
 
 import 'moment/locale/ar'
@@ -46,6 +36,7 @@ import { decodeToken } from 'react-jwt'
 
 import * as SecureStore from 'expo-secure-store'
 
+import { API } from 'src/Services/API'
 import { store } from '../../Store/store'
 
 interface ServiceInterface {
@@ -144,44 +135,9 @@ export default function HomeScreen() {
         width: Dimensions.get('window').width,
         height: Dimensions.get('window').width * 0.675,
     }
-    const [activeIndex, setActiveIndex] = React.useState(0)
-
-    const [appState, setAppState] = useState<AppStateStatus>(AppState.currentState)
-    const [isHandled, setIsHandled] = useState(false)
-
-    const { data: annoucementNotification, refetch: annoucementRefetch } = useShowAnnouncementvideoQuery()
 
     const navigation = useNavigation()
     //console.log(surveys)
-
-    // const [triggerProperties] = useGetPropertiesQuery({})
-    const { data: properties } = useGetPropertiesQuery(selectedLanguage)
-    const { data: articles = [] } = useGetArticlesQuery(selectedLanguage)
-    const { data: userProperties, isFetching: propretiesIsFetching, refetch: propretiesRefetch } = useGetUserPropertiesQuery({})
-
-    const [triggerUserDocuments] = useLazyGetUserDocumentsQuery({})
-    const [triggerUserTickets] = useLazyGetUserTicketsQuery({})
-    const [triggerUserProperties] = useLazyGetUserPropertiesQuery({})
-
-    const formatDate = (item: ApiNewsInterface, selectedLanguage: string) => {
-        moment.locale('en')
-
-        if (selectedLanguage === 'ar') {
-            const translatedMonth = moment(item.post_date).locale('ar').format('MMMM')
-            const day = moment(item.post_date).locale('en').format('DD')
-            const year = moment(item.post_date).locale('en').format('YYYY')
-            return `${day} ${translatedMonth} ${year}`
-        } else {
-            return moment(item.post_date).format('LL')
-        }
-    }
-
-    useEffect(() => {
-        triggerUserProperties({})
-        // triggerProperties(selectedLanguage)
-        triggerUserDocuments({})
-        triggerUserTickets({})
-    }, [])
 
     useEffect(() => {
         if (value.length > 0) {
@@ -199,7 +155,7 @@ export default function HomeScreen() {
                     //@ts-ignore
                     if (decoded && decoded.iat && decoded.user_id && moment(decoded.iat * 1000).isBefore(moment('2024-05-05')) && decoded.user_id == 902) {
                         await SecureStore.deleteItemAsync('token')
-                        store.dispatch(API_RETAL.util.resetApiState())
+                        store.dispatch(API.util.resetApiState())
                         Toast.show({
                             title: translate('You have been logged out'),
                             type: ALERT_TYPE.SUCCESS,

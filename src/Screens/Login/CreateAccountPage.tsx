@@ -1,41 +1,62 @@
-import { useNavigation } from '@react-navigation/native'
-import React from 'react'
-import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
+import React, { useState } from 'react'
+import { FlatList, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
-import { useGetUserMeQuery, useUpdateUserMeMutation } from '../../Services/API'
 
+import { useNavigation } from '@react-navigation/native'
 import { useForm } from 'react-hook-form'
+import { ALERT_TYPE, Toast } from 'react-native-alert-notification'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
-import PhoneInput from 'react-native-phone-input'
+import { useCreateUserMutation, useLazyGetAddressPredictionsQuery } from 'src/Services/API'
 import Input from '../../Components/Shared/Input'
 import MaintButton from '../../Components/Shared/MaintButton'
 import { useTranslation } from '../../Services/hooks/useTranslation'
 
 export default function CreateAccountPage() {
-    const navigation = useNavigation()
-    const fullNameRef = React.useRef<TextInput>(null)
-    const [updateUser, updateUserMutation] = useUpdateUserMeMutation()
-    const { data: user } = useGetUserMeQuery({})
     const { translate, language } = useTranslation()
-    const phoneInputRef = React.useRef<PhoneInput>(null)
-
+    const [getAddress] = useLazyGetAddressPredictionsQuery()
+    const [addressSuggestions, setAddressSuggestions] = useState<{ description: string; place_id: string }[]>([])
+    const [selectedAddress, setSelectedAddress] = useState<string>('')
+    const [createUser, createUserMutation] = useCreateUserMutation()
     const [faceId, setFaceId] = React.useState(false)
-
+    const navigation = useNavigation()
     const {
         control,
         handleSubmit,
         formState: { errors },
         setValue,
+        getValues,
     } = useForm({
         defaultValues: {
             fullname: '',
             password: '',
+            email: '',
             confirmPassword: '',
             city: '',
+            phone: '',
         },
     })
 
-    const onSubmit = async (data: any) => {}
+    const onSubmit = async (data: any) => {
+        try {
+            setAddressSuggestions([]) // Optional: Hide suggestions on submit
+
+            await createUser({
+                phone: data.phone,
+                email: data.email,
+                full_name: data.fullname,
+                password: data.password,
+                address: data.city,
+            }).unwrap() // unwrap if you're using RTK Query
+
+            Toast.show({
+                type: ALERT_TYPE.SUCCESS,
+                title: translate('Account created successfully'),
+            })
+            navigation.goBack()
+        } catch (error: any) {
+            console.error(error)
+        }
+    }
 
     return (
         <KeyboardAwareScrollView
@@ -51,16 +72,12 @@ export default function CreateAccountPage() {
 
                 <View style={styles.inputsContainer}>
                     <Input
-                        ref={fullNameRef}
-                        onSubmitEditing={() => {
-                            fullNameRef.current?.focus()
-                        }}
-                        placeholder={translate('First name')}
-                        title={translate('First name')}
+                        placeholder={translate('Full name')}
+                        title={translate('Full name')}
                         control={control}
-                        name='fullName'
+                        name='fullname'
                         rules={{
-                            required: `${translate(`${translate('This field is required')}`)}`,
+                            required: `${translate('This field is required')}`,
                         }}
                         errors={errors}
                         containerStyle={{
@@ -70,19 +87,36 @@ export default function CreateAccountPage() {
                     />
                 </View>
                 <View style={styles.inputsContainer}>
-                    <Text style={styles.inputLabel}>{translate('Phone number')}</Text>
-
-                    <View style={[styles.inputContainer, { width: wp('90%') }]}>
-                        <PhoneInput
-                            autoFormat={true}
-                            ref={phoneInputRef}
-                            initialCountry='sa'
-                            confirmText={translate('Done')}
-                            cancelText={translate('Cancel')}
-                            onChangePhoneNumber={(text) => {}}
-                            textStyle={styles.input}
-                        />
-                    </View>
+                    <Input
+                        placeholder={translate('Email')}
+                        title={translate('Email')}
+                        control={control}
+                        name='email'
+                        rules={{
+                            required: `${translate('This field is required')}`,
+                        }}
+                        errors={errors}
+                        containerStyle={{
+                            width: wp('90%'),
+                        }}
+                        width={90}
+                    />
+                </View>
+                <View style={styles.inputsContainer}>
+                    <Input
+                        placeholder={translate('Phone')}
+                        title={translate('Phone')}
+                        control={control}
+                        name='phone'
+                        rules={{
+                            required: `${translate('This field is required')}`,
+                        }}
+                        errors={errors}
+                        containerStyle={{
+                            width: wp('90%'),
+                        }}
+                        width={90}
+                    />
                 </View>
                 <View style={styles.inputsContainer}>
                     <Input
@@ -102,6 +136,7 @@ export default function CreateAccountPage() {
                             width: wp('90%'),
                         }}
                         width={90}
+                        secureTextEntry
                     />
                 </View>
 
@@ -112,34 +147,88 @@ export default function CreateAccountPage() {
                         control={control}
                         name='confirmPassword'
                         rules={{
-                            required: `${translate('This field is required')}`,
-                            validate: (value: string, formValues: any) => value === formValues.password || translate('Passwords do not match'),
+                            required: translate('This field is required'),
+                            validate: (value: string) => value === getValues('password') || translate('Passwords do not match'),
                         }}
                         errors={errors}
                         containerStyle={{
                             width: wp('90%'),
                         }}
                         width={90}
+                        secureTextEntry
                     />
                 </View>
 
                 <View style={styles.inputsContainer}>
-                    <Input
-                        placeholder={translate('City')}
-                        title={translate('City')}
-                        control={control}
-                        name='city'
-                        rules={{
-                            required: `${translate('This field is required')}`,
-                            validate: (value: string, formValues: any) => value === formValues.password || translate('Passwords do not match'),
+                    <Text
+                        style={{
+                            fontFamily: 'regular',
+                            fontSize: wp('5%'),
+                            color: '#666666',
+                            marginBottom: hp('1%'),
+                            textAlign: 'left',
+                        }}>
+                        City
+                    </Text>
+                    <TextInput
+                        onChangeText={(value) => {
+                            setSelectedAddress(value)
+                            if (value.length > 2) {
+                                getAddress(value).then((res) => {
+                                    const predictions = res?.data || []
+                                    const mapped = predictions.map((item: any) => ({
+                                        description: item.description,
+                                        place_id: item.place_id,
+                                    }))
+                                    setAddressSuggestions(mapped)
+                                })
+                            } else {
+                                setAddressSuggestions([])
+                            }
                         }}
-                        errors={errors}
-                        containerStyle={{
-                            width: wp('90%'),
+                        value={selectedAddress}
+                        style={{
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            height: hp('7.25%'),
+                            width: '100%',
+                            backgroundColor: '#F2F2F2',
+                            paddingHorizontal: wp('3'),
                         }}
-                        width={90}
                     />
                 </View>
+                {addressSuggestions.length > 0 && (
+                    <FlatList
+                        data={addressSuggestions}
+                        keyExtractor={(item) => item.place_id}
+                        renderItem={({ item }) => (
+                            <TouchableOpacity
+                                style={{
+                                    paddingVertical: hp('1.5%'),
+                                    paddingHorizontal: wp('3%'),
+                                    borderBottomColor: '#ccc',
+                                    borderBottomWidth: 1,
+                                    backgroundColor: '#F2F2F2',
+                                    width: '100%',
+                                }}
+                                onPress={() => {
+                                    setValue('city', item.place_id)
+                                    setSelectedAddress(item.description)
+                                    setAddressSuggestions([])
+                                }}>
+                                <Text style={{ fontSize: wp('4%') }}>{item.description}</Text>
+                            </TouchableOpacity>
+                        )}
+                        style={{
+                            backgroundColor: '#fff',
+                            maxHeight: hp('30%'),
+                            alignSelf: 'center',
+                            borderRadius: 4,
+                            elevation: 3,
+                        }}
+                        contentContainerStyle={{ width: wp('90%') }}
+                    />
+                )}
 
                 <View style={styles.separator} />
 
@@ -149,7 +238,7 @@ export default function CreateAccountPage() {
                     backgroundColor='black'
                     textColor='white'
                     style={styles.ContinueBotton}
-                    hasActivityIndicator={updateUserMutation.isLoading ? true : false}
+                    hasActivityIndicator={createUserMutation.isLoading}
                 />
                 {/* <Text style={styles.newAccount}>
                     {translate("Already have an account?")}

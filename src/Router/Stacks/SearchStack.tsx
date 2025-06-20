@@ -1,7 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import React from 'react'
 import DefaultHeader from '../../Components/Header/DefaultHeader'
-import SearchScreen from '../../Screens/Search/SearchScreen'
 import { headerTitleStyle } from '../../Screens/Service/HeaderTitleStyle'
 import { useTabStyle } from '../../Services/hooks/NavigationTabStyle'
 import { useTranslation } from '../../Services/hooks/useTranslation'

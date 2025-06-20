@@ -1,13 +1,13 @@
-import { View, Text, StyleSheet } from "react-native"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState } from 'react'
+import { StyleSheet, Text, View } from 'react-native'
 // import RNPickerSelect from 'react-native-picker-select';
-import Picker2 from "react-native-picker-select"
-import { ArrowDownIcon } from "../../../assets/svgs/Svg"
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen"
-import { useTranslation } from "../../Services/hooks/useTranslation"
+import Picker2 from 'react-native-picker-select'
+import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
+import { ArrowDownIcon } from '../../../assets/svgs/Svg'
+import { useTranslation } from '../../Services/hooks/useTranslation'
 
 export default function Picker({
-    title = "Message",
+    title = 'Message',
     items = [],
     placeholder,
     onValueChange,
@@ -35,7 +35,12 @@ export default function Picker({
 
     return (
         <View style={styles.detailsContainer}>
-            <Text style={styling ? { alignSelf: "flex-start", fontFamily: "regular", color: "#666666", fontSize: wp("5.75%"), marginBottom: hp("2%") } : styles.message}>
+            <Text
+                style={
+                    styling
+                        ? { alignSelf: 'flex-start', fontFamily: 'regular', color: '#666666', fontSize: wp('5.75%'), marginBottom: hp('2%') }
+                        : styles.message
+                }>
                 {translate(`${title}`)}
             </Text>
             <Picker2
@@ -47,23 +52,23 @@ export default function Picker({
                     value: null,
                 }}
                 style={{
-                    inputIOS: { ...styles.pickerContainer, textAlign: language === "ar" ? "right" : "left" },
-                    inputAndroid: { ...styles.pickerContainer, textAlign: language === "ar" ? "right" : "left" },
+                    inputIOS: { ...styles.pickerContainer, textAlign: language === 'ar' ? 'right' : 'left' },
+                    inputAndroid: { ...styles.pickerContainer, textAlign: language === 'ar' ? 'right' : 'left' },
                     iconContainer: {
-                        top: wp("4.5%"),
-                        right: wp("3%"),
+                        top: wp('4.5%'),
+                        right: wp('3%'),
                     },
                     placeholder: {
-                        color: "#000",
+                        color: '#000',
                     },
                 }}
                 fixAndroidTouchableBug={true}
                 useNativeAndroidPickerStyle={false}
                 // @ts-ignore
                 Icon={() => {
-                    return <ArrowDownIcon color="#000" />
+                    return <ArrowDownIcon color='#000' />
                 }}
-                doneText={translate("Done")}
+                doneText={translate('Done')}
             />
         </View>
     )
@@ -71,52 +76,38 @@ export default function Picker({
 
 const styles = StyleSheet.create({
     detailsContainer: {
-        justifyContent: "space-between",
-        paddingHorizontal: wp("5%"),
-        marginHorizontal: wp("5%"),
-        width: wp("90%"),
-        paddingVertical: hp("4%"),
-        backgroundColor: "#fff",
-        marginTop: hp("2%"),
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 3.84,
-        elevation: 5,
+        justifyContent: 'space-between',
+        width: wp('90%'),
+        marginBottom: hp('3%'),
     },
     message: {
-        alignSelf: "flex-start",
-        fontFamily: "medium",
-        color: "#121212",
-        fontSize: wp("5.75%"),
-        marginBottom: hp("2%"),
+        alignSelf: 'flex-start',
+        fontFamily: 'medium',
+        color: '#121212',
+        fontSize: wp('5.75%'),
+        marginBottom: hp('2%'),
     },
     textInput: {
-        fontFamily: "regular",
-        color: "#121212",
-        fontSize: wp("5%"),
+        fontFamily: 'regular',
+        color: '#121212',
+        fontSize: wp('5%'),
         borderWidth: 2,
-        borderColor: "#E5E5E5",
-        width: wp("80%"),
-        minHeight: hp("20%"),
-        paddingHorizontal: wp("5%"),
-        paddingTop: hp("2%"),
+        borderColor: '#E5E5E5',
+
+        minHeight: hp('20%'),
+        paddingHorizontal: wp('5%'),
+        paddingTop: hp('2%'),
     },
     pickerContainer: {
-        fontFamily: "regular",
-        fontSize: wp("5%"),
-        color: "#121212",
-        borderColor: "#F2F2F2",
+        fontFamily: 'regular',
+        fontSize: wp('5%'),
+        color: '#121212',
+        borderColor: '#F2F2F2',
         borderWidth: 2,
-        height: hp("6%"),
-        width: wp("80%"),
-        paddingLeft: wp("2.75%"),
-        alignItems: "center",
-        justifyContent: "center",
-        flexDirection: "row",
-        paddingRight: wp("7.5%"),
+        height: hp('6%'),
+        paddingLeft: wp('2.75%'),
+        paddingRight: wp('7.5%'),
+        justifyContent: 'center',
+        paddingVertical: hp('1.5%'), // Makes full area touchable
     },
 })

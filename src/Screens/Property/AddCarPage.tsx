@@ -1,20 +1,17 @@
-import * as FileSystem from 'expo-file-system'
-import * as ImagePicker from 'expo-image-picker'
 import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
 import { PlusIcon } from '../../../assets/svgs/Svg'
 import Input from '../../Components/Shared/Input'
 import MaintButton from '../../Components/Shared/MaintButton'
+import useOcrImagePicker from '../../Services/hooks/useOcr'
 import { useTranslation } from '../../Services/hooks/useTranslation'
-const API_BASE_URL = 'http://192.168.1.27:5000/api'
 
 export default function AddCarPage() {
     const { translate } = useTranslation()
-    const [firstImage, setFirstImage] = useState(null)
-    const [secondImage, setSecondImage] = useState(null)
+
     const [scanVisible, setScanVisible] = useState(false)
     const {
         control,
@@ -22,140 +19,7 @@ export default function AddCarPage() {
         formState: { errors },
         setValue,
     } = useForm()
-
-    const chooseImageSource = (imageType) => {
-        Alert.alert(
-            'Sélectionner une option',
-            'Voulez-vous prendre une photo ou choisir depuis la galerie ?',
-            [
-                {
-                    text: 'Appareil photo',
-                    onPress: () => captureImage(imageType),
-                },
-                {
-                    text: 'Galerie',
-                    onPress: () => selectImage(imageType),
-                },
-                {
-                    text: 'Annuler',
-                    style: 'cancel',
-                },
-            ],
-            { cancelable: true }
-        )
-    }
-
-    // Request permission for camera and media library
-    const requestPermissions = async () => {
-        const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync()
-        const { status: mediaLibraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync()
-
-        if (cameraStatus !== 'granted' || mediaLibraryStatus !== 'granted') {
-            alert('Nous avons besoin des permissions de caméra et galerie pour fonctionner correctement!')
-            return false
-        }
-        return true
-    }
-
-    // Function to handle image capture
-    const captureImage = async (imageType) => {
-        const hasPermission = await requestPermissions()
-        if (!hasPermission) return
-
-        try {
-            const result = await ImagePicker.launchCameraAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                allowsEditing: true,
-                aspect: [4, 3],
-                quality: 0.8,
-            })
-
-            if (!result.canceled && result.assets && result.assets.length > 0) {
-                const selectedImage = result.assets[0]
-
-                // Save image to app's file system for persistence
-                const persistedUri = await saveImageToFileSystem(selectedImage.uri)
-                const persistedImage = { ...selectedImage, uri: persistedUri }
-
-                if (imageType === 'first') {
-                    setFirstImage(persistedImage)
-                } else {
-                    setSecondImage(persistedImage)
-                }
-            }
-        } catch (error) {
-            console.log('Error capturing image:', error)
-            alert("Erreur lors de la capture d'image: ", error.message)
-        }
-    }
-
-    // Function to handle image selection from gallery
-    const selectImage = async (imageType) => {
-        const hasPermission = await requestPermissions()
-        if (!hasPermission) return
-
-        try {
-            const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                allowsEditing: true,
-                quality: 1,
-            })
-
-            if (!result.canceled && result.assets && result.assets.length > 0) {
-                const selectedImage = result.assets[0]
-
-                // Save image to app's file system for persistence
-                const persistedUri = await saveImageToFileSystem(selectedImage.uri)
-                const persistedImage = { ...selectedImage, uri: persistedUri }
-
-                if (imageType === 'first') {
-                    setFirstImage(persistedImage)
-                } else {
-                    setSecondImage(persistedImage)
-                }
-            }
-        } catch (error) {
-            console.log('Error selecting image:', error)
-            alert("Erreur lors de la sélection d'image: " + error.message)
-        }
-    }
-
-    // Function to save image to FileSystem for persistence
-    const saveImageToFileSystem = async (uri) => {
-        try {
-            const fileName = uri.split('/').pop()
-            const destinationUri = `${FileSystem.documentDirectory}${fileName}`
-
-            // Check if file already exists at destination to avoid unnecessary copying
-            const fileInfo = await FileSystem.getInfoAsync(destinationUri)
-            if (fileInfo.exists) return destinationUri
-
-            // Copy the file to a permanent location
-            await FileSystem.copyAsync({
-                from: uri,
-                to: destinationUri,
-            })
-
-            return destinationUri
-        } catch (error) {
-            console.log('Error saving image to file system:', error)
-            // Return original URI if there's an error
-            return uri
-        }
-    }
-
-    // Function to get base64 data from an image
-    const getBase64FromUri = async (uri) => {
-        try {
-            const base64 = await FileSystem.readAsStringAsync(uri, {
-                encoding: FileSystem.EncodingType.Base64,
-            })
-            return base64
-        } catch (error) {
-            console.log('Error converting image to base64:', error)
-            throw error
-        }
-    }
+    const { firstImage, secondImage, chooseImageSource, processImages } = useOcrImagePicker()
 
     const applyOcrResult = (dataFromApi) => {
         Object.entries(dataFromApi).forEach(([name, value]) => {
@@ -168,52 +32,13 @@ export default function AddCarPage() {
         })
     }
 
-    // Function to process the images with the OCR system via API
-    const processImages = async () => {
-        if (!firstImage || !secondImage) {
-            alert('Veuillez sélectionner les deux images')
-            return
-        }
-
-        /* if (!apiConnected) {
-            await checkApiConnection()
-            if (!apiConnected) {
-                alert('Impossible de se connecter au serveur OCR. Vérifiez votre connexion et réessayez.')
-                return
-            }
-        } */
-
-        // Convert images to base64
-        const firstImageBase64 = await getBase64FromUri(firstImage.uri)
-        const secondImageBase64 = await getBase64FromUri(secondImage.uri)
-
-        console.log('Envoi des images au serveur pour traitement...')
-
-        // Send the images to the API
-        const response = await fetch(`${API_BASE_URL}/process`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                firstImage: `data:image/jpeg;base64,${firstImageBase64}`,
-                secondImage: `data:image/jpeg;base64,${secondImageBase64}`,
-            }),
-        })
-
-        const result = await response.json()
-        console.log('API response received:', result)
-
-        if (!response.ok) {
-            throw new Error(result.error || 'Erreur inconnue')
-        }
-
-        if (result.success) {
-            console.log('Traitement OCR réussi')
-            // Mettre à jour formData avec les résultats tout en préservant les champs personnalisés
-            applyOcrResult(result.data) //  👈  populate the form
-        } else {
-            throw new Error('Le traitement a échoué')
+    const handleScan = async () => {
+        try {
+            const ocrResult = await processImages()
+            applyOcrResult(ocrResult.data)
+        } catch (e) {
+            console.error(e)
+            alert('Erreur lors du scan OCR.')
         }
     }
 
@@ -307,7 +132,7 @@ export default function AddCarPage() {
 
                 <MaintButton
                     action={() => {
-                        scanVisible ? processImages() : setScanVisible(true)
+                        scanVisible ? handleScan() : setScanVisible(true)
                     }}
                     title={translate(scanVisible ? 'Scan' : 'Quick scan')}
                     backgroundColor='grey'

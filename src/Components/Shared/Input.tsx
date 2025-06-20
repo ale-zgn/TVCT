@@ -18,8 +18,21 @@ interface InputProps {
     width?: number
     ref?: any
     onSubmitEditing?: any
+    secureTextEntry?: boolean
 }
-export default function Input({ placeholder, control, name, rules, errors, containerStyle, icon, title, width, onSubmitEditing }: InputProps) {
+export default function Input({
+    placeholder,
+    control,
+    name,
+    rules,
+    errors,
+    containerStyle,
+    icon,
+    title,
+    width,
+    onSubmitEditing,
+    secureTextEntry = false,
+}: InputProps) {
     const { language } = useTranslation()
     return (
         <View>
@@ -43,6 +56,7 @@ export default function Input({ placeholder, control, name, rules, errors, conta
                             placeholderTextColor={'#666666'}
                             onSubmitEditing={onSubmitEditing}
                             textAlign={language == 'ar' ? 'right' : 'left'}
+                            secureTextEntry={secureTextEntry}
                         />
                     )}
                     name={name}

@@ -98,7 +98,7 @@ export default function HomeUnloggedPage() {
                     console.log(isAuth)
 
                     //@ts-ignore
-                    isAuth ? navigation.navigate('TabNavigator') : navigation.navigate('LoginStack')
+                    navigation.navigate('TabNavigatorUnlogged')
                 }}
             />
             {/* </Pressable> */}

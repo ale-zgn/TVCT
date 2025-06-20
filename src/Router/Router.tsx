@@ -14,25 +14,26 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { getFocusedRouteNameFromRoute, NavigationContainer, NavigationContainerRef } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import * as SecureStore from 'expo-secure-store'
-import { TabHomeIcon, TabPropertyIcon, TabSearchIcon, TabServiceIcon } from '../../assets/svgs/TabSvg'
+import { TabHomeIcon, TabPropertyIcon, TabServiceIcon } from '../../assets/svgs/TabSvg'
 import CloseHeaderLeft from '../Components/Header/CloseHeaderLeft'
 import DefaultHeaderLeft from '../Components/Header/DefaultHeaderLeft'
 import { headerTitleStyle } from '../Screens/Service/HeaderTitleStyle'
 import HomeStack from './Stacks/HomeStack'
 import MyPropertyStack from './Stacks/MyPropertyStack'
-import SearchStack from './Stacks/SearchStack'
 import ServiceStack from './Stacks/ServiceStack'
 
 import { useSharedValue } from 'react-native-reanimated'
 
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6'
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import { Video } from 'expo-av'
 import LanguageModal from '../Screens/Modals/LanguageModal'
 import PersonalInformationModal from '../Screens/Modals/PersonalInformationModal'
 import ProfileModal from '../Screens/Modals/ProfileModal'
 import { useTranslation } from '../Services/hooks/useTranslation'
-import HomeStackUnloggedScreen from './Stacks/HomeUnloggedStack'
 import LoginUnloggedStackScreen from './Stacks/LoginUnloggedStack'
-
+import VisitStack from './Stacks/VisitStack'
+import VisitUnloggedStackScreen from './Stacks/VisitStackUnlogged'
 SplashScreen.preventAutoHideAsync()
 
 const RootStack = createNativeStackNavigator()
@@ -136,13 +137,13 @@ function TabNavigator() {
                 tabBarIcon: ({ focused }) => {
                     switch (route.name) {
                         case 'HomeStack':
-                            return <TabHomeIcon color={focused ? 'black' : '#666666'} opacity={focused ? 1 : 0.5} />
+                            return <TabHomeIcon color={focused ? '#0D47A1' : '#666666'} opacity={focused ? 1 : 0.5} />
                         case 'MyPropertyStack':
-                            return <TabPropertyIcon color={focused ? 'black' : '#666666'} opacity={focused ? 1 : 0.5} />
+                            return <TabPropertyIcon color={focused ? '#0D47A1' : '#666666'} opacity={focused ? 1 : 0.5} />
                         case 'SearchStack':
-                            return <TabSearchIcon color={focused ? 'black' : '#666666'} opacity={focused ? 1 : 0.5} />
+                            return <FontAwesome6 name='screwdriver-wrench' size={20} color={focused ? '#0D47A1' : '#666666'} opacity={focused ? 1 : 0.5} />
                         case 'ServiceStack':
-                            return <TabServiceIcon color={focused ? 'black' : '#666666'} opacity={focused ? 1 : 0.5} />
+                            return <TabServiceIcon color={focused ? '#0D47A1' : '#666666'} opacity={focused ? 1 : 0.5} />
                         default:
                             return null
                     }
@@ -150,13 +151,13 @@ function TabNavigator() {
                 tabBarLabel: ({ focused }) => {
                     switch (route.name) {
                         case 'HomeStack':
-                            return <TabBarLabel route='Home' opacity={focused ? 1 : 0.5} />
+                            return <TabBarLabel route='Home' color={focused ? '#0D47A1' : '#666666'} opacity={focused ? 1 : 0.5} />
                         case 'MyPropertyStack':
-                            return <TabBarLabel route='Vehicules' opacity={focused ? 1 : 0.5} />
+                            return <TabBarLabel route='Vehicules' color={focused ? '#0D47A1' : '#666666'} opacity={focused ? 1 : 0.5} />
                         case 'SearchStack':
-                            return <TabBarLabel route='Visits' opacity={focused ? 1 : 0.5} />
+                            return <TabBarLabel route='Visits' color={focused ? '#0D47A1' : '#666666'} opacity={focused ? 1 : 0.5} />
                         case 'ServiceStack':
-                            return <TabBarLabel route='Services' opacity={focused ? 1 : 0.5} />
+                            return <TabBarLabel route='Services' color={focused ? '#0D47A1' : '#666666'} opacity={focused ? 1 : 0.5} />
                         default:
                             return null
                     }
@@ -167,8 +168,67 @@ function TabNavigator() {
             sceneContainerStyle={{ overflow: 'visible' }}>
             <Tab.Screen name='HomeStack' component={HomeStack} />
             <Tab.Screen name='MyPropertyStack' component={MyPropertyStack} />
-            <Tab.Screen name='SearchStack' component={SearchStack} />
+            <Tab.Screen name='SearchStack' component={VisitStack} />
             <Tab.Screen name='ServiceStack' component={ServiceStack} />
+        </Tab.Navigator>
+    )
+}
+
+function TabNavigatorUnlogged() {
+    const tabHiddenScreens = ['CreateAccount', 'TutorialPage', 'PrivacyPolicy', 'Contact', 'FAQ', 'PropertyDetails', 'MyPropertiesDetails', 'AddCarPage']
+
+    const getTabBarStyle = (route) => {
+        const routeName = getFocusedRouteNameFromRoute(route) ?? route.name
+        console.log('routeName', routeName)
+
+        if (tabHiddenScreens.includes(routeName)) {
+            return { display: 'none', height: 0 }
+        }
+        return {
+            display: 'flex',
+            height: hp('10%'),
+            position: 'absolute',
+        }
+    }
+
+    return (
+        <Tab.Navigator
+            screenOptions={({ route }) => ({
+                lazy: false,
+                headerShown: false,
+                tabBarStyle: getTabBarStyle(route),
+                tabBarItemStyle: {
+                    marginTop: 8,
+                    height: hp('8%'),
+                },
+                tabBarIcon: ({ focused }) => {
+                    switch (route.name) {
+                        case 'LoginStack':
+                            return <MaterialCommunityIcons name='login' size={20} color={focused ? 'black' : '#666666'} opacity={focused ? 1 : 0.5} />
+                        case 'VisitStack':
+                            return <FontAwesome6 name='screwdriver-wrench' size={20} color={focused ? 'black' : '#666666'} opacity={focused ? 1 : 0.5} />
+
+                        default:
+                            return null
+                    }
+                },
+                tabBarLabel: ({ focused }) => {
+                    switch (route.name) {
+                        case 'LoginStack':
+                            return <TabBarLabel route='login' opacity={focused ? 1 : 0.5} />
+                        case 'VisitStack':
+                            return <TabBarLabel route='Visit' opacity={focused ? 1 : 0.5} />
+
+                        default:
+                            return null
+                    }
+                },
+                tabBarInactiveTintColor: '#666666',
+                tabBarActiveTintColor: 'black',
+            })}
+            sceneContainerStyle={{ overflow: 'visible' }}>
+            <Tab.Screen name='LoginStack' component={LoginUnloggedStackScreen} />
+            <Tab.Screen name='VisitStack' component={VisitUnloggedStackScreen} />
         </Tab.Navigator>
     )
 }
@@ -266,7 +326,7 @@ export default function Router() {
                     <RootStack.Navigator screenOptions={{ headerShown: false }} initialRouteName={isAuth ? 'TabNavigator' : 'TabNavigatorUnlogged'}>
                         <RootStack.Screen name='LoginStack' component={LoginUnloggedStackScreen} />
 
-                        <RootStack.Screen name='TabNavigatorUnlogged' component={HomeStackUnloggedScreen} />
+                        <RootStack.Screen name='TabNavigatorUnlogged' component={TabNavigatorUnlogged} />
 
                         <RootStack.Screen name='TabNavigator' component={TabNavigator} />
 

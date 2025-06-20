@@ -4,7 +4,7 @@ import { FLUSH, PAUSE, PERSIST, persistStore, PURGE, REGISTER, REHYDRATE } from 
 
 // import userSlice from './Slices/userSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { API_RETAL, API_WP } from '../Services/API'
+import { API } from '../Services/API'
 
 const persistConfig = {
     key: 'root', // The key under which your state will be stored
@@ -30,15 +30,14 @@ const persistConfig = {
 // });
 export const store = configureStore({
     reducer: {
-        [API_WP.reducerPath]: API_WP.reducer,
-        [API_RETAL.reducerPath]: API_RETAL.reducer,
+        [API.reducerPath]: API.reducer,
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
             serializableCheck: {
                 ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
             },
-        }).concat(API_WP.middleware, API_RETAL.middleware), // Include both API middlewares here
+        }).concat(API.middleware), // Include both API middlewares here
 })
 
 export const persistor = persistStore(store)
