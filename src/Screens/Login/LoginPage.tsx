@@ -1,9 +1,7 @@
 import { useIsFocused, useNavigation } from '@react-navigation/native'
-import * as SecureStore from 'expo-secure-store'
 import React from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { Keyboard, Pressable, SafeAreaView, StatusBar, StyleSheet, Text, TextInput, View } from 'react-native'
-import { ALERT_TYPE, Toast } from 'react-native-alert-notification'
 import PhoneInput from 'react-native-phone-input'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
 import { useAuthMutation } from 'src/Services/API'
@@ -32,21 +30,23 @@ export default function LoginPage() {
 
     const onSubmit = async (data: { email: string; password: string }) => {
         try {
-            await auth({
-                email: data.email,
-                password: data.password,
-            })
-                .then(async (response) => {
-                    await SecureStore.setItemAsync('token', response.data.token)
-                    navigation.replace('TabNavigator')
-                })
-                .catch(() => {
-                    Toast.show({
-                        type: ALERT_TYPE.DANGER,
-                        title: translate('Unauthorized access'),
-                        textBody: translate('Invalid email or password.'),
-                    })
-                })
+            // await auth({
+            //     email: data.email,
+            //     password: data.password,
+            // })
+            //     .then(async (response) => {
+            //         await SecureStore.setItemAsync('token', response.data.token)
+            //         navigation.replace('TabNavigator')
+            //     })
+            //     .catch(() => {
+            //         Toast.show({
+            //             type: ALERT_TYPE.DANGER,
+            //             title: translate('Unauthorized access'),
+            //             textBody: translate('Invalid email or password.'),
+            //         })
+            //     })
+                navigation.replace('TabNavigator')
+
         } catch (error) {
             console.error('Login error:', error)
         }
