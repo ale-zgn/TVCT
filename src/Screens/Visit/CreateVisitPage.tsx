@@ -1,19 +1,20 @@
+import DateTimePicker from '@react-native-community/datetimepicker';
 import React, { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
-  Image,
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
+	Image,
+	Modal,
+	Pressable,
+	ScrollView,
+	StyleSheet,
+	Text,
+	View,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import MapView from "react-native-maps";
 import {
-  heightPercentageToDP as hp,
-  widthPercentageToDP as wp,
+	heightPercentageToDP as hp,
+	widthPercentageToDP as wp,
 } from "react-native-responsive-screen";
 import { ArrowDownIcon, PlusIcon } from "../../../assets/svgs/Svg";
 import Input from "../../Components/Shared/Input";
@@ -22,14 +23,17 @@ import Picker from "../../Components/Shared/Picker";
 import useOcrImagePicker from "../../Services/hooks/useOcr";
 import { useTranslation } from "../../Services/hooks/useTranslation";
 
+
 export default function CreateVisitPage() {
   const { translate } = useTranslation();
   const mapRef = useRef<MapView>(null);
 
   const [scanVisible, setScanVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-    const [paymentVisible, setPaymentVisible] = useState(false);
-
+  const [paymentVisible, setPaymentVisible] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const {
     control,
     handleSubmit,
@@ -66,7 +70,7 @@ export default function CreateVisitPage() {
   const conditionalFields = {
     TU: [
       { name: "serie", label: "Série" },
-      { name: "conf_serie", label: "Confirmer Série" }, 
+      { name: "conf_serie", label: "Confirmer Série" },
       { name: "chassis", label: "5 derniers caractères du N° de châssis:" },
     ],
     RS: [
@@ -177,6 +181,48 @@ export default function CreateVisitPage() {
   const onSubmit = async (data: any) => {
     console.log("Car info submitted:", data);
     // handle API call here
+  };
+  const generateTimeSlots = () => {
+    const slots = [];
+    for (let hour = 9; hour <= 17; hour++) {
+      const time12h = hour > 12 ? `${hour - 12}:00 PM` : `${hour}:00 AM`;
+      const time24h = `${hour.toString().padStart(2, "0")}:00`;
+      slots.push({
+        display: time12h,
+        value: time24h,
+        id: hour,
+      });
+    }
+    return slots;
+  };
+
+  const timeSlots = generateTimeSlots();
+
+  const onDateChange = (event, selectedDate) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      setSelectedDate(selectedDate);
+      setSelectedTimeSlot(null); // Reset time slot when date changes
+    }
+  };
+
+  const handleTimeSlotSelect = (slot) => {
+    setSelectedTimeSlot(slot);
+  };
+
+  const handleConfirm = () => {
+    if (selectedTimeSlot) {
+      const appointment = {
+        date: selectedDate.toDateString(),
+        time: selectedTimeSlot.display,
+        datetime: new Date(
+          selectedDate.toDateString() + " " + selectedTimeSlot.value
+        ),
+      };
+      console.log("Selected appointment:", appointment);
+      // Handle your booking logic here
+      setPaymentVisible(false);
+    }
   };
 
   const fieldSections = [
@@ -432,13 +478,13 @@ export default function CreateVisitPage() {
                 ))}
               </View>
             ))}
-            <View style={styles.sectionContainer}>
+            {/*   <View style={styles.sectionContainer}>
               <Pressable onPress={() => setModalVisible(true)}>
                 <Text
                   style={{
                     fontSize: wp("4%"),
                     width: "100%",
-                    color: "#121212",
+                    color: "#121212",	  
                     marginBottom: hp("2%"),
                     textDecorationLine: "underline",
                   }}
@@ -446,11 +492,11 @@ export default function CreateVisitPage() {
                   {translate("Pick location")}
                 </Text>
               </Pressable>
-            </View>
+            </View> */}
 
             <MaintButton
-              action={handleSubmit(onSubmit)}
-              title={translate("Submit")}
+              action={() => setModalVisible(true)}
+              title={translate("Proceed")}
               backgroundColor="black"
               textColor="white"
             />
@@ -475,7 +521,10 @@ export default function CreateVisitPage() {
               showsUserLocation={true}
             ></MapView>
             <Pressable
-              onPress={() => setModalVisible(false)}
+              onPress={() => {
+                setModalVisible(false);
+                setPaymentVisible(true);
+              }}
               style={{
                 position: "absolute",
                 height: wp("8%"),
@@ -494,39 +543,191 @@ export default function CreateVisitPage() {
         </Modal>
         <Modal
           animationType="slide"
-          transparent={false}
+          transparent={true}
           visible={paymentVisible}
           onRequestClose={() => setPaymentVisible(false)}
         >
-          <View style={styles.modalView}>
-            <MapView
-              style={styles.map}
-              ref={mapRef}
-              initialRegion={{
-                latitude: 35.8256,
-                longitude: 10.6084,
-                latitudeDelta: 0.2044,
-                longitudeDelta: 0.0842,
-              }}
-              showsUserLocation={true}
-            ></MapView>
-            <Pressable
-              onPress={() => setModalVisible(false)}
+          <Pressable
+            onPress={() => setPaymentVisible(false)}
+            style={styles.modalView}
+          >
+            <View
+              onStartShouldSetResponder={() => true}
               style={{
-                position: "absolute",
-                height: wp("8%"),
-                width: wp("8%"),
-                justifyContent: "center",
-                alignItems: "center",
+                height: hp("60%"),
                 backgroundColor: "white",
-                top: hp("5%"),
-                right: wp("6%"),
-                borderRadius: 50,
+                width: "100%",
+                position: "absolute",
+                bottom: 0,
+                borderTopLeftRadius: 20,
+                borderTopRightRadius: 20,
+                padding: 20,
+				paddingBottom:0,
+                zIndex: 10,
               }}
             >
-              <Text>X</Text>
-            </Pressable>
-          </View>
+              {/* Header */}
+              <Text
+                style={{
+                  fontSize: 20,
+                  fontWeight: "bold",
+                  textAlign: "center",
+                  marginBottom: 20,
+                  color: "#333",
+                }}
+              >
+                Select Date & Time
+              </Text>
+
+              {/* Date Selection */}
+              <View style={{ marginBottom: 20 }}>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "600",
+                    marginBottom: 10,
+                    color: "#333",
+                  }}
+                >
+                  Select Date
+                </Text>
+                <Pressable
+                  style={{
+                    backgroundColor: "#f0f0f0",
+                    padding: 15,
+                    borderRadius: 10,
+                    alignItems: "center",
+                  }}
+                  onPress={() => setShowDatePicker(true)}
+                >
+                  <Text style={{ fontSize: 16, color: "#333" }}>
+                    {selectedDate.toDateString()}
+                  </Text>
+                </Pressable>
+              </View>
+
+              {showDatePicker && (
+                <DateTimePicker
+                  value={selectedDate}
+                  mode="date"
+                  display="default"
+                  onChange={onDateChange}
+                  minimumDate={new Date()}
+                />
+              )}
+
+              {/* Time Slots */}
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "600",
+                    marginBottom: 10,
+                    color: "#333",
+                  }}
+                >
+                  Available Time Slots
+                </Text>
+                <ScrollView
+                  style={{ maxHeight: hp("27%") }}
+                  showsVerticalScrollIndicator={false}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      flexWrap: "wrap",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    {timeSlots.map((slot) => (
+                      <Pressable
+                        key={slot.id}
+                        style={[
+                          {
+                            width: "48%",
+                            backgroundColor:
+                              selectedTimeSlot?.id === slot.id
+                                ? "#85553A" : "#fff",
+                            padding: 12,
+                            borderRadius: 8,
+                            marginBottom: 10,
+                            alignItems: "center",
+                            borderWidth: 1,
+                            borderColor:
+                              selectedTimeSlot?.id === slot.id
+                                ? "#85553A"
+                                : "#e0e0e0",
+                          },
+                        ]}
+                        onPress={() => handleTimeSlotSelect(slot)}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 14,
+                            color:
+                              selectedTimeSlot?.id === slot.id
+                                ? "white"
+                                : "#333",
+                            fontWeight:
+                              selectedTimeSlot?.id === slot.id
+                                ? "600"
+                                : "normal",
+                          }}
+                        >
+                          {slot.display}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </ScrollView>
+              </View>
+
+              {/* Action Buttons */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Pressable
+                  style={{
+                    flex: 1,
+                    backgroundColor: "#f0f0f0",
+                    padding: 15,
+                    borderRadius: 10,
+                    marginRight: 10,
+                    alignItems: "center",
+                  }}
+                  onPress={() => setPaymentVisible(false)}
+                >
+                  <Text style={{ fontSize: 16, color: "#666" }}>Cancel</Text>
+                </Pressable>
+
+                <Pressable
+                  style={{
+                    flex: 1,
+                    backgroundColor: selectedTimeSlot ? "black" : "#ccc",
+                    padding: 15,
+                    borderRadius: 10,
+                    marginLeft: 10,
+                    alignItems: "center",
+                  }}
+                  onPress={handleConfirm}
+                  disabled={!selectedTimeSlot}
+                >
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      color: selectedTimeSlot ? "white" : "#888",
+                      fontWeight: "600",
+                    }}
+                  >
+                    Confirm
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          </Pressable>
         </Modal>
       </ScrollView>
     </KeyboardAwareScrollView>
@@ -680,7 +881,7 @@ const styles = StyleSheet.create({
   },
   modalView: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.9)",
+    backgroundColor: "rgba(0,0,0,0.2)",
   },
   map: {
     width: "100%",
