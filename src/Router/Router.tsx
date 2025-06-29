@@ -12,16 +12,16 @@ import * as LinkingExpo from "expo-linking";
 
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import {
-    getFocusedRouteNameFromRoute,
-    NavigationContainer,
-    NavigationContainerRef,
+  getFocusedRouteNameFromRoute,
+  NavigationContainer,
+  NavigationContainerRef,
 } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import * as SecureStore from "expo-secure-store";
 import {
-    TabHomeIcon,
-    TabPropertyIcon,
-    TabServiceIcon,
+  TabHomeIcon,
+  TabPropertyIcon,
+  TabServiceIcon,
 } from "../../assets/svgs/TabSvg";
 import CloseHeaderLeft from "../Components/Header/CloseHeaderLeft";
 import DefaultHeaderLeft from "../Components/Header/DefaultHeaderLeft";
@@ -39,6 +39,7 @@ import LanguageModal from "../Screens/Modals/LanguageModal";
 import PersonalInformationModal from "../Screens/Modals/PersonalInformationModal";
 import ProfileModal from "../Screens/Modals/ProfileModal";
 import { useTranslation } from "../Services/hooks/useTranslation";
+import CenterStackScreen from "./Stacks/CenterStack";
 import LoginUnloggedStackScreen from "./Stacks/LoginUnloggedStack";
 import VisitStack from "./Stacks/VisitStack";
 import VisitUnloggedStackScreen from "./Stacks/VisitStackUnlogged";
@@ -133,7 +134,7 @@ function TabNavigator() {
     "MyPropertiesDetails",
     "AddCarPage",
   ];
-  const isAdmin = true; // Replace with your actual logic
+  const isAdmin = false; // Replace with your actual logic
 
   const getTabBarStyle = (route) => {
     const routeName = getFocusedRouteNameFromRoute(route) ?? route.name;
@@ -186,6 +187,15 @@ function TabNavigator() {
                   opacity={focused ? 1 : 0.5}
                 />
               );
+            case "CenterStack":
+              return (
+                <FontAwesome6
+                  name="warehouse"
+                  size={20}
+                  color={focused ? "#0D47A1" : "#666666"}
+                  opacity={focused ? 1 : 0.5}
+                />
+              );
             case "ServiceStack":
               return (
                 <TabServiceIcon
@@ -231,6 +241,14 @@ function TabNavigator() {
                   opacity={focused ? 1 : 0.5}
                 />
               );
+                case "CenterStack":
+              return (
+                <TabBarLabel
+                  route="Centers "
+                  color={focused ? "#0D47A1" : "#666666"}
+                  opacity={focused ? 1 : 0.5}
+                />
+              );
             default:
               return null;
           }
@@ -241,10 +259,14 @@ function TabNavigator() {
       sceneContainerStyle={{ overflow: "visible" }}
     >
       {!isAdmin && <Tab.Screen name="HomeStack" component={HomeStack} />}
-      {!isAdmin &&<Tab.Screen name="MyPropertyStack" component={MyPropertyStack} />}
+      {!isAdmin && (
+        <Tab.Screen name="MyPropertyStack" component={MyPropertyStack} />
+      )}
       <Tab.Screen name="SearchStack" component={VisitStack} />
-      
-      {!isAdmin &&<Tab.Screen name="ServiceStack" component={ServiceStack} />}
+      {isAdmin && (
+        <Tab.Screen name="CenterStack" component={CenterStackScreen} />
+      )}
+      {!isAdmin && <Tab.Screen name="ServiceStack" component={ServiceStack} />}
     </Tab.Navigator>
   );
 }
@@ -259,6 +281,7 @@ function TabNavigatorUnlogged() {
     "PropertyDetails",
     "MyPropertiesDetails",
     "AddCarPage",
+    "NewCenterScreen"
   ];
 
   const getTabBarStyle = (route) => {

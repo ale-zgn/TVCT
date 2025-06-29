@@ -37,7 +37,7 @@ export const useHideTabs = () => {
 export const useTabStyle = (props?: any) => {
     const navigation = useNavigation()
     const route = useRoute()
-    const tabHiddenRoutes = ['CreateAccount', 'TutorialPage', 'PrivacyPolicy', 'Contact', 'FAQ', 'PropertyDetails', 'MyPropertiesDetails', 'AddCarPage']
+    const tabHiddenRoutes = ['CreateAccount', 'TutorialPage', 'PrivacyPolicy', 'Contact', 'FAQ', 'PropertyDetails', 'MyPropertiesDetails', 'AddCarPage','NewCenterScreen']
 
     useFocusEffect(
         useCallback(() => {

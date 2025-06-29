@@ -13,7 +13,7 @@ const VisitStack = createNativeStackNavigator();
 
 export default function VisitStackScreen() {
     const { translate } = useTranslation();
-    const isAdmin = true; // Replace with your actual logic
+    const isAdmin = false; // Replace with your actual logic
     useTabStyle();
   
     return (
@@ -23,7 +23,7 @@ export default function VisitStackScreen() {
             name="VisitsScreen"
             component={VisitsScreen}
             options={{
-              title: translate("New visit"),
+              title: translate("Visits"),
               headerTitleStyle: headerTitleStyle,
               headerTitleAlign: "center",
             }}

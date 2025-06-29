@@ -3,8 +3,8 @@ import { BlurView } from "expo-blur";
 import React from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import {
-    heightPercentageToDP as hp,
-    widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+  widthPercentageToDP as wp,
 } from "react-native-responsive-screen";
 import Title from "src/Components/Shared/Title";
 import { useTranslation } from "src/Services/hooks/useTranslation";
@@ -12,7 +12,7 @@ export default function VisitsScreen() {
   const { translate, language: selectedLanguage } = useTranslation();
 
   return (
-    <>
+    <View style={{backgroundColor:"white",flex:1}}>
       <Title value={translate("My visits")} />
       <FlatList
         contentContainerStyle={styles.flatList}
@@ -71,7 +71,7 @@ export default function VisitsScreen() {
           </View>
         )}
       />
-    </>
+    </View>
   );
 }
 
