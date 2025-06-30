@@ -53,6 +53,13 @@ export const API = createApi({
             }),
             transformResponse: (response: ResponseType) => response.data,
         }),
+        getUser: builder.query<any, any>({
+            query: () => ({
+                url: `/users/me`,
+                method: 'GET',
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+        }),
         getAddressPredictions: builder.query<any, string>({
             query: (keyword) => ({
                 url: `/users/me/address/predictions?keyword=${keyword}`,
@@ -60,7 +67,30 @@ export const API = createApi({
             }),
             transformResponse: (response: ResponseType) => response.data,
         }),
+        createCar: builder.mutation<any, any>({
+            query: (data) => ({
+                url: '/users/me/cars',
+                method: 'POST',
+                body: data,
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+        }),
+        getCars: builder.query<any, any>({
+            query: () => ({
+                url: '/users/me/cars',
+                method: 'GET',
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+        }),
     }),
 })
 
-export const { useAuthMutation, useGetAddressPredictionsQuery, useLazyGetAddressPredictionsQuery, useCreateUserMutation } = API
+export const {
+    useAuthMutation,
+    useGetAddressPredictionsQuery,
+    useLazyGetAddressPredictionsQuery,
+    useCreateUserMutation,
+    useGetUserQuery,
+    useCreateCarMutation,
+    useGetCarsQuery,
+} = API

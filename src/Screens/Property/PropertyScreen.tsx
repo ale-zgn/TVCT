@@ -5,11 +5,15 @@ import Property from '../../Components/Shared/Property'
 
 import { useNavigation } from '@react-navigation/native'
 import MaintButton from 'src/Components/Shared/MaintButton'
+import { useGetCarsQuery } from 'src/Services/API'
 import { useTranslation } from '../../Services/hooks/useTranslation'
 import { carsData } from '../Home/HomeScreen'
 
 export default function MyPropertiesScreen() {
     const { translate, language } = useTranslation()
+    const { data: cars } = useGetCarsQuery({})
+    console.log('cars', cars)
+
     const navigation = useNavigation()
     // const filteredProperties = React.useMemo(() => {
     //     if (!selectedFilter) return properties
