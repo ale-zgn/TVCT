@@ -27,6 +27,7 @@ import { useSharedValue } from 'react-native-reanimated'
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6'
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import { Video } from 'expo-av'
+import NotificationModal from 'src/Screens/Modals/NotificationModal'
 import { useGetUserQuery } from 'src/Services/API'
 import LanguageModal from '../Screens/Modals/LanguageModal'
 import PersonalInformationModal from '../Screens/Modals/PersonalInformationModal'
@@ -87,6 +88,18 @@ function ProfileStack() {
                     headerTitleAlign: 'center',
                 }}
             />
+
+            <Profile.Screen
+                name='NotificationModal'
+                component={NotificationModal}
+                options={{
+                    headerLeft: () => <CloseHeaderLeft />,
+                    title: `${translate('Notifications')}`,
+                    presentation: 'fullScreenModal',
+                    headerTitleStyle: headerTitleStyle,
+                    headerTitleAlign: 'center',
+                }}
+            />
         </Profile.Navigator>
     )
 }
@@ -110,7 +123,13 @@ function TabBarLabel({ route, color, opacity }: { route: string; color?: string;
 function TabNavigator() {
     const tabHiddenScreens = ['CreateAccount', 'TutorialPage', 'PrivacyPolicy', 'Contact', 'FAQ', 'PropertyDetails', 'MyPropertiesDetails', 'AddCarPage']
     const { data: user } = useGetUserQuery({})
-    const isAdmin = user?.role === 1
+    const [isAdmin, setIsAdmin] = useState(false)
+    useEffect(() => {
+        if (user && user.role === 0) {
+            setIsAdmin(true)
+        }
+    }, [user])
+
     const getTabBarStyle = (route) => {
         const routeName = getFocusedRouteNameFromRoute(route) ?? route.name
         console.log('routeName', routeName)
@@ -158,7 +177,7 @@ function TabNavigator() {
                         case 'HomeStack':
                             return <TabBarLabel route='Home' color={focused ? '#0D47A1' : '#666666'} opacity={focused ? 1 : 0.5} />
                         case 'MyPropertyStack':
-                            return <TabBarLabel route='Vehicules' color={focused ? '#0D47A1' : '#666666'} opacity={focused ? 1 : 0.5} />
+                            return <TabBarLabel route='Cars' color={focused ? '#0D47A1' : '#666666'} opacity={focused ? 1 : 0.5} />
                         case 'SearchStack':
                             return <TabBarLabel route='Visits' color={focused ? '#0D47A1' : '#666666'} opacity={focused ? 1 : 0.5} />
                         case 'ServiceStack':
@@ -222,9 +241,9 @@ function TabNavigatorUnlogged() {
                 tabBarIcon: ({ focused }) => {
                     switch (route.name) {
                         case 'LoginStack':
-                            return <MaterialCommunityIcons name='login' size={20} color={focused ? 'black' : '#666666'} opacity={focused ? 1 : 0.5} />
+                            return <MaterialCommunityIcons name='login' size={20} color={focused ? '#0D47A1' : '#666666'} opacity={focused ? 1 : 0.5} />
                         case 'VisitStack':
-                            return <FontAwesome6 name='screwdriver-wrench' size={20} color={focused ? 'black' : '#666666'} opacity={focused ? 1 : 0.5} />
+                            return <FontAwesome6 name='screwdriver-wrench' size={20} color={focused ? '#0D47A1' : '#666666'} opacity={focused ? 1 : 0.5} />
 
                         default:
                             return null
@@ -233,9 +252,9 @@ function TabNavigatorUnlogged() {
                 tabBarLabel: ({ focused }) => {
                     switch (route.name) {
                         case 'LoginStack':
-                            return <TabBarLabel route='login' opacity={focused ? 1 : 0.5} />
+                            return <TabBarLabel route='login' color={focused ? '#0D47A1' : '#666666'} opacity={focused ? 1 : 0.5} />
                         case 'VisitStack':
-                            return <TabBarLabel route='Visit' opacity={focused ? 1 : 0.5} />
+                            return <TabBarLabel route='Visit' color={focused ? '#0D47A1' : '#666666'} opacity={focused ? 1 : 0.5} />
 
                         default:
                             return null

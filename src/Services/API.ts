@@ -58,7 +58,7 @@ export const API = createApi({
                 url: `/users/me`,
                 method: 'GET',
             }),
-            transformResponse: (response: ResponseType) => response.data,
+            transformResponse: (response: ResponseType) => response.data.user,
         }),
         getAddressPredictions: builder.query<any, string>({
             query: (keyword) => ({

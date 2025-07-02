@@ -3,12 +3,13 @@ import React, { useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen'
 import { NotificationIcon } from '../../../assets/svgs/Svg'
+import { useGetUserQuery } from '../../Services/API'
+import { S3Image } from '../Shared/S3Image'
 
 export default function DefaultHeader() {
     const navigation = useNavigation()
-    /*  const { data: user } = useGetUserMeQuery({})
-    const { data: notifications, refetch: notificationsRefetch } = useGetUserNotificationsQuery({})
- */
+    const { data: user } = useGetUserQuery({})
+
     const [notificationCount, setNotificationCount] = useState(0)
     const [surveyCount, setSurveyCount] = useState(0)
 
@@ -50,8 +51,7 @@ export default function DefaultHeader() {
                     //@ts-ignore
                     navigation.navigate('ProfileStack', { screen: 'ProfileModal' })
                 }}>
-                {/*                 <S3Image file={user?.image} folder={'users/images'} customStyle={styles.image} />
-                 */}
+                <S3Image file={undefined} folder={'users/images'} customStyle={styles.image} />
             </Pressable>
         </View>
     )

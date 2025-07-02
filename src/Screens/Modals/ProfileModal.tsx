@@ -1,5 +1,5 @@
 import React from 'react'
-import { ActivityIndicator, Alert, FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
 
 import { useNavigation } from '@react-navigation/native'
@@ -7,13 +7,13 @@ import * as SecureStore from 'expo-secure-store'
 import { ALERT_TYPE, Toast } from 'react-native-alert-notification'
 import { ArrowLeftIcon, BoldRightArrowIcon, HearthIcon, LockIcon, LogoutIcon, PersonIcon } from '../../../assets/svgs/Svg'
 import { S3Image } from '../../Components/Shared/S3Image'
-import { API_RETAL, useGetUserMeQuery } from '../../Services/API'
+import { API, useGetUserQuery } from '../../Services/API'
 import { useTranslation } from '../../Services/hooks/useTranslation'
 import { store } from '../../Store/store'
 
 export default function ProfileModal() {
     const { translate, language } = useTranslation()
-    const { data: user, refetch, isLoading, isFetching } = useGetUserMeQuery({})
+    const { data: user } = useGetUserQuery({})
     const items = [
         {
             name: 'Personal informations',
@@ -37,8 +37,8 @@ export default function ProfileModal() {
         // },
     ]
 
-    const [darkMode, setDarkMode] = React.useState(false)
-    const [faceId, setFaceId] = React.useState(false)
+    console.log(user)
+
     const navigation = useNavigation()
 
     return (
@@ -47,19 +47,11 @@ export default function ProfileModal() {
                 <View style={styles.header}>
                     <View>
                         <S3Image file={user.image} folder={'users/images'} customStyle={styles.image} />
-                        <View style={styles.coinsContainer}>
-                            <Text style={styles.coinsValue}>{translate('Member')}</Text>
-                        </View>
                     </View>
                     <Text style={styles.name}>
                         {/* @ts-ignore */}
-                        {user?.first_name} {user?.last_name}
+                        {user?.full_name}
                     </Text>
-
-                    <View style={styles.customerContainer}>
-                        <Text style={styles.customerText}>{translate('Customer')} </Text>
-                        <Text style={styles.customerNumber}>#2861493</Text>
-                    </View>
                 </View>
             ) : (
                 <View style={styles.indicator}>
@@ -136,7 +128,7 @@ export default function ProfileModal() {
                     //set time out to allow the push token to be unregistered before logging out
                     setTimeout(async () => {
                         await SecureStore.deleteItemAsync('token')
-                        store.dispatch(API_RETAL.util.resetApiState())
+                        store.dispatch(API.util.resetApiState())
                         Toast.show({
                             title: translate('You have been logged out'),
                             type: ALERT_TYPE.SUCCESS,
@@ -151,41 +143,6 @@ export default function ProfileModal() {
                             <LogoutIcon />
                         </View>
                         <Text style={styles.itemText}>{translate('Logout')}</Text>
-                    </View>
-                    {language === 'ar' ? <ArrowLeftIcon /> : <BoldRightArrowIcon />}
-                </View>
-            </Pressable>
-
-            <Pressable
-                style={styles.itemsContainer}
-                onPress={async () => {
-                    Alert.alert('Delete Account', 'Are you sure you want to delete your account? This action is irreversible', [
-                        {
-                            text: 'Cancel',
-                            onPress: () => console.log('Cancel Pressed'),
-                            style: 'cancel',
-                        },
-                        {
-                            text: 'OK',
-                            onPress: async () => {
-                                await SecureStore.deleteItemAsync('token')
-                                store.dispatch(API_RETAL.util.resetApiState())
-                                Toast.show({
-                                    title: translate('You have been logged out and your account has been deleted.'),
-                                    type: ALERT_TYPE.SUCCESS,
-                                })
-                                //@ts-ignore
-                                navigation.replace('TabNavigatorUnlogged')
-                            },
-                        },
-                    ])
-                }}>
-                <View style={styles.itemContainer}>
-                    <View style={styles.item}>
-                        <View style={styles.itemIconContainer}>
-                            <LogoutIcon />
-                        </View>
-                        <Text style={styles.itemText}>{translate('Delete my account')}</Text>
                     </View>
                     {language === 'ar' ? <ArrowLeftIcon /> : <BoldRightArrowIcon />}
                 </View>

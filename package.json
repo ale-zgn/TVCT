@@ -8,7 +8,8 @@
         "android": "expo start --android",
         "ios": "expo start --ios",
         "web": "expo start --web",
-        "lint": "expo lint"
+        "lint": "expo lint",
+        "build-android-dev": "APP_ENV=development eas build --profile=development -p android --local"
     },
     "dependencies": {
         "@expo/react-native-action-sheet": "^4.1.1",
@@ -29,6 +30,7 @@
         "expo-cached-image": "^53.0.9",
         "expo-cached-image-background": "^1.0.1",
         "expo-constants": "^17.1.6",
+        "expo-dev-client": "^5.2.2",
         "expo-font": "~13.3.1",
         "expo-haptics": "~14.1.4",
         "expo-image": "~2.1.7",

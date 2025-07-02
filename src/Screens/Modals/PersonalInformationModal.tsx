@@ -1,15 +1,14 @@
 import { useNavigation } from '@react-navigation/native'
 import React, { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import { ALERT_TYPE, Toast } from 'react-native-alert-notification'
+import { Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
+import { useGetUserQuery } from 'src/Services/API'
 import { PhotoIcon } from '../../../assets/svgs/Svg'
 import MaintButton from '../../Components/Shared/MaintButton'
 import { S3Image } from '../../Components/Shared/S3Image'
 import useImagePicker from '../../Components/Shared/usePhoto'
-import { useGetUserMeQuery, useRequestFileMutation, useUpdateUserImageMutation, useUpdateUserMeMutation } from '../../Services/API'
 import useSocket from '../../Services/hooks/useSocket'
 import { useTranslation } from '../../Services/hooks/useTranslation'
 
@@ -17,13 +16,13 @@ export default function PersonalInformationModal() {
     const [showActivityIndicator, setShowActivityIndicator] = useState(true)
 
     const { images, showImagePickerActionSheet } = useImagePicker()
-    const { data: user, refetch: userRefetch, isFetching: userIsFetching } = useGetUserMeQuery({})
-    const [updateUser, updateUserMutation] = useUpdateUserMeMutation()
+    const { data: user, refetch: userRefetch, isFetching: userIsFetching } = useGetUserQuery({})
+    /*  const [updateUser, updateUserMutation] = useUpdateUserMeMutation()
     const [requestUserFile, requestUserFileMutation] = useRequestFileMutation()
-    const [updateUserImage, updateUserImageMutation] = useUpdateUserImageMutation()
+    const [updateUserImage, updateUserImageMutation] = useUpdateUserImageMutation() */
 
     const [isEditingFirstName, setIsEditingFirstName] = useState(false)
-    const [firstName, setFirstName] = useState(user?.first_name)
+    const [firstName, setFirstName] = useState(user?.full_name)
 
     const [isEditingLastName, setIsEditingLastName] = useState(false)
     const [lastName, setLastName] = useState(user?.last_name)
@@ -36,7 +35,7 @@ export default function PersonalInformationModal() {
 
     const uploadImage = async () => {
         try {
-            await requestUserFile('users/images')
+            /*  await requestUserFile('users/images')
                 .unwrap()
                 .then(async (response) => {
                     console.log('res', response)
@@ -65,7 +64,7 @@ export default function PersonalInformationModal() {
                             .then((response) => console.log('test sucess', response))
                             .catch((err) => console.log('error', err))
                     }
-                })
+                }) */
         } catch (error) {
             console.error('Error:', error)
         }
@@ -86,15 +85,14 @@ export default function PersonalInformationModal() {
         formState: { errors },
     } = useForm({
         defaultValues: {
-            name: user?.first_name,
-            lastname: user?.last_name,
-            //phoneNumber: user?.phone_number,
-            //email: user?.email,
+            fullname: user?.full_name,
+            phoneNumber: user?.phone_number,
+            email: user?.email,
         },
     })
 
     const onSubmit = (data: any) => {
-        updateUser({ first_name: firstName, last_name: lastName })
+        /*   updateUser({ first_name: firstName, last_name: lastName })
             .unwrap()
             .then((response) => {
                 if (response) {
@@ -105,7 +103,7 @@ export default function PersonalInformationModal() {
                     })
                     navigation.goBack()
                 }
-            })
+            }) */
     }
 
     useSocket({
@@ -135,16 +133,10 @@ export default function PersonalInformationModal() {
                 <Pressable style={styles.titleContainer} onPress={showImagePickerActionSheet}>
                     <Text style={styles.title}>{translate('Change my profile photo')}</Text>
                     <View>
-                        {updateUserImageMutation.isLoading ? (
-                            <ActivityIndicator size='large' />
-                        ) : (
-                            <>
-                                <S3Image file={user?.image} folder={'users/images'} customStyle={styles.image} />
-                                <View style={styles.coinsContainer}>
-                                    <PhotoIcon />
-                                </View>
-                            </>
-                        )}
+                        <S3Image file={user?.image} folder={'users/images'} customStyle={styles.image} />
+                        <View style={styles.coinsContainer}>
+                            <PhotoIcon />
+                        </View>
                     </View>
                 </Pressable>
 
@@ -175,20 +167,11 @@ export default function PersonalInformationModal() {
                     placeholder="Enter your lastname"
                 /> */}
                 <TouchableOpacity style={styles.textContainer} onPress={() => setIsEditingFirstName(true)}>
-                    <Text style={styles.inputTitle}>{translate('First name')}</Text>
+                    <Text style={styles.inputTitle}>{translate('Full name')}</Text>
                     {isEditingFirstName ? (
                         <TextInput style={styles.inputTitle} value={firstName} onChangeText={setFirstName} onEndEditing={saveFirstName} autoFocus />
                     ) : (
                         <Text style={styles.value}>{firstName}</Text>
-                    )}
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.textContainer} onPress={() => setIsEditingLastName(true)}>
-                    <Text style={styles.inputTitle}>{translate('Last name')}</Text>
-                    {isEditingLastName ? (
-                        <TextInput style={styles.inputTitle} value={lastName} onChangeText={setLastName} onEndEditing={saveLastName} autoFocus />
-                    ) : (
-                        <Text style={styles.value}>{lastName}</Text>
                     )}
                 </TouchableOpacity>
 
@@ -199,7 +182,7 @@ export default function PersonalInformationModal() {
                         navigation.navigate('UpdatePersonalInfo', { formType: 'phone' })
                     }}>
                     <Text style={styles.inputTitle}>{translate('Phone number')}</Text>
-                    <Text style={styles.value}>{user?.phone_number} </Text>
+                    <Text style={styles.value}>{user?.phone} </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -218,7 +201,7 @@ export default function PersonalInformationModal() {
                         action={handleSubmit(onSubmit)}
                         backgroundColor='black'
                         textColor='white'
-                        hasActivityIndicator={updateUserMutation.isLoading ? true : false}
+                        //hasActivityIndicator={updateUserMutation.isLoading ? true : false}
                     />
                 </View>
             </View>
