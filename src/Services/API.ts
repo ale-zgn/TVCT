@@ -1,14 +1,9 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import * as SecureStore from 'expo-secure-store'
 import Config from '../Config'
-interface UserCreateForm {
-    phone: string
-    email: string
-    password: string
-    full_name: string
-    address: string
-}
-interface ResponseType {
+import { Car, Center, User, UserCreateForm } from './Interface'
+
+export interface ResponseType {
     data: any
     status: string
 }
@@ -39,7 +34,7 @@ export const API = createApi({
             }),
             transformResponse: (response: ResponseType) => response.data,
         }),
-        createUser: builder.mutation<any, UserCreateForm>({
+        createUser: builder.mutation<User, UserCreateForm>({
             query: ({ phone, email, full_name, address, password }) => ({
                 url: '/users',
                 method: 'POST',
@@ -53,7 +48,7 @@ export const API = createApi({
             }),
             transformResponse: (response: ResponseType) => response.data,
         }),
-        getUser: builder.query<any, any>({
+        getUser: builder.query<User, any>({
             query: () => ({
                 url: `/users/me`,
                 method: 'GET',
@@ -75,9 +70,38 @@ export const API = createApi({
             }),
             transformResponse: (response: ResponseType) => response.data,
         }),
-        getCars: builder.query<any, any>({
+        getCars: builder.query<Car[], any>({
             query: () => ({
                 url: '/users/me/cars',
+                method: 'GET',
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+        }),
+        getCar: builder.query<Car, number>({
+            query: (id) => ({
+                url: `/users/me/cars/${id}`,
+                method: 'GET',
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+        }),
+        createCenter: builder.mutation<any, any>({
+            query: (data) => ({
+                url: '/centers',
+                method: 'POST',
+                body: data,
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+        }),
+        getCenters: builder.query<Center[], void>({
+            query: (id) => ({
+                url: `/centers`,
+                method: 'GET',
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+        }),
+        getCenterAvailibility: builder.query<any, void>({
+            query: (id) => ({
+                url: `/centers/${id}`,
                 method: 'GET',
             }),
             transformResponse: (response: ResponseType) => response.data,
@@ -93,4 +117,9 @@ export const {
     useGetUserQuery,
     useCreateCarMutation,
     useGetCarsQuery,
+    useGetCarQuery,
+    useLazyGetCarQuery,
+    useCreateCenterMutation,
+    useGetCentersQuery,
+    useLazyGetCenterAvailibilityQuery,
 } = API

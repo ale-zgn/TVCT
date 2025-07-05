@@ -35,10 +35,11 @@ export default function PropertyStackScreen() {
                     title: translate('New visit'),
                     headerTitleStyle: headerTitleStyle,
                     headerTitleAlign: 'center',
+                    headerLeft: () => <DefaultHeaderLeft />,
                 }}
             />
             <PropertyStack.Screen
-                name='MyPropertiesDetails'
+                name='MyCarDetails'
                 component={MyPropertyDetails}
                 options={{
                     headerShown: false,

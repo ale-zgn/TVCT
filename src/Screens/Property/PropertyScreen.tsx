@@ -1,13 +1,12 @@
 import React from 'react'
 import { FlatList, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
-import Property from '../../Components/Shared/Property'
+import CarItem from '../../Components/Shared/Property'
 
 import { useNavigation } from '@react-navigation/native'
 import MaintButton from 'src/Components/Shared/MaintButton'
 import { useGetCarsQuery } from 'src/Services/API'
 import { useTranslation } from '../../Services/hooks/useTranslation'
-import { carsData } from '../Home/HomeScreen'
 
 export default function MyPropertiesScreen() {
     const { translate, language } = useTranslation()
@@ -21,37 +20,33 @@ export default function MyPropertiesScreen() {
     // }, [selectedFilter])
 
     return (
-        <>
-            <View style={styles.wrapper}>
-                <StatusBar backgroundColor='#fcfcfc' barStyle='dark-content' />
-                <ScrollView
-                    style={styles.scrollView}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ alignItems: 'center', paddingTop: hp('5%') }}>
-                    <FlatList
-                        contentContainerStyle={styles.flatList}
-                        scrollEnabled={false}
-                        data={carsData}
-                        renderItem={({ item }) => <Property property={item} />}
-                        keyExtractor={(item, index) => index.toString()}
-                        ItemSeparatorComponent={() => <View style={styles.separator} />}
-                        ListEmptyComponent={() => (
-                            <View style={{ alignItems: 'center', height: hp('50%'), justifyContent: 'center', flex: 1 }}>
-                                <Text style={{ fontFamily: 'medium', fontSize: wp('5%'), color: '#000' }}>{translate('No properties found')}</Text>
-                            </View>
-                        )}
-                    />
-                    <MaintButton
-                        title='Add a car'
-                        action={() => {
-                            navigation.navigate('AddCarPage')
-                        }}
-                        backgroundColor='black'
-                        textColor='white'
-                    />
-                </ScrollView>
-            </View>
-        </>
+        <View style={styles.wrapper}>
+            <StatusBar backgroundColor='#fcfcfc' barStyle='dark-content' />
+            <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ alignItems: 'center', paddingTop: hp('5%') }}>
+                <FlatList
+                    contentContainerStyle={styles.flatList}
+                    scrollEnabled={false}
+                    data={cars}
+                    renderItem={({ item }) => <CarItem Car={item} />}
+                    keyExtractor={(item, index) => index.toString()}
+                    ItemSeparatorComponent={() => <View style={styles.separator} />}
+                    ListEmptyComponent={() => (
+                        <View style={{ alignItems: 'center', height: hp('50%'), justifyContent: 'center', flex: 1 }}>
+                            <Text style={{ fontFamily: 'medium', fontSize: wp('5%'), color: '#000' }}>{translate('No properties found')}</Text>
+                        </View>
+                    )}
+                />
+            </ScrollView>
+            <MaintButton
+                title='Add a car'
+                action={() => {
+                    navigation.navigate('AddCarPage')
+                }}
+                style={{ marginTop: hp('1%') }}
+                backgroundColor='black'
+                textColor='white'
+            />
+        </View>
     )
 }
 
@@ -68,7 +63,6 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#fcfcfc',
         alignItems: 'center',
-        justifyContent: 'center',
         paddingBottom: hp('10%'),
     },
     scrollView: {

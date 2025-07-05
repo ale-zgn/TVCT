@@ -1,5 +1,5 @@
 import { useNavigation, useRoute } from '@react-navigation/native'
-import React, { useRef, useState } from 'react'
+import React, { useRef } from 'react'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import MapView from 'react-native-maps'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
@@ -11,17 +11,16 @@ import { BlurView } from 'expo-blur'
 import { Image } from 'expo-image'
 import MaintButton from 'src/Components/Shared/MaintButton'
 import Title from 'src/Components/Shared/Title'
+import { useGetCarQuery } from 'src/Services/API'
 import { carsData } from '../Home/HomeScreen'
 export default function MyPropertyDetails() {
-    const [propertyFromWP, setPropertyFromWP] = useState<WPProperty | null>(null)
-
     const navigation = useNavigation()
     const { translate, language } = useTranslation()
     const mapRef = useRef<MapView>(null)
 
     const route = useRoute()
-    //const { property_id } = route.params as { property_id: number }
-    //const { data: property, isFetching: propretyIsFetching, refetch } = useGetUserPropertyQuery(property_id)
+    const { car_id } = route.params as { car_id: number }
+    const { data: car, isFetching: propretyIsFetching, refetch } = useGetCarQuery(car_id)
     const property = carsData[0]
     const vehicleSections = [
         {
@@ -130,17 +129,17 @@ export default function MyPropertyDetails() {
                                     key={fieldIndex}
                                     style={{
                                         flexDirection: 'row',
+                                        alignItems: 'center',
                                         justifyContent: 'space-between',
                                         marginBottom: hp('1%'),
                                     }}>
-                                    <Text style={{ fontSize: wp('4%'), color: '#333' }}>{field.label}</Text>
+                                    <Text style={{ fontSize: wp('3.75%'), color: '#333' }}>{field.label}</Text>
                                     <Text
                                         style={{
-                                            fontSize: wp('4%'),
-                                            fontWeight: '600',
+                                            fontSize: wp('3.25%'),
                                             color: '#000',
                                         }}>
-                                        {property?.[field.name] ?? '—'}
+                                        {car?.[field.name] ?? '—'}
                                     </Text>
                                 </View>
                             ))}
@@ -150,40 +149,53 @@ export default function MyPropertyDetails() {
 
                 <Title value={translate('My visits')} />
 
-                <BlurView
-                    intensity={10}
-                    tint='dark'
-                    style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        width: '90%',
-                        margin: hp('0.5%'),
-                        padding: hp('2%'),
-                        borderRadius: 16,
-                        overflow: 'hidden', // Important for rounded corners on blur
-                    }}>
-                    <View>
-                        <Text
+                {car?.reservations?.length > 0 ? (
+                    car?.reservations.map((reservation, index) => (
+                        <BlurView
+                            key={reservation.id || index}
+                            intensity={10}
+                            tint='dark'
                             style={{
-                                fontSize: wp('4.2%'),
-                                marginBottom: hp('1%'),
-                                fontWeight: 'bold',
-                                color: '#000',
+                                flexDirection: 'row',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                width: '90%',
+                                marginVertical: hp('0.5%'),
+                                padding: hp('2%'),
+                                borderRadius: 16,
+                                overflow: 'hidden',
                             }}>
-                            Car Matricule ABC-123
-                        </Text>
-                        <Text style={{ fontSize: wp('3.8%'), color: '#444' }}>Visit at City Center - 10:30 AM</Text>
-                    </View>
-                    {language === 'en' ? <RightArrowIcon color='#000' /> : <LeftArrowIcon color='#000' />}
-                </BlurView>
+                            <View>
+                                <Text
+                                    style={{
+                                        fontSize: wp('4.2%'),
+                                        marginBottom: hp('1%'),
+                                        fontWeight: 'bold',
+                                        color: '#000',
+                                    }}>
+                                    {translate('Car Matricule')}: {car?.matricule}
+                                </Text>
+                                <Text style={{ fontSize: wp('3.8%'), color: '#444' }}>
+                                    {translate('Visit at')} {reservation.center?.longitude || 'Center'} -{' '}
+                                    {new Date(reservation.date).toLocaleTimeString(language === 'en' ? 'en-US' : 'fr-FR', {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                    })}
+                                </Text>
+                            </View>
+                            {language === 'en' ? <RightArrowIcon color='#000' /> : <LeftArrowIcon color='#000' />}
+                        </BlurView>
+                    ))
+                ) : (
+                    <Text style={{ fontSize: wp('3.8%'), color: '#444' }}>{translate('You have no reservations')}</Text>
+                )}
             </ScrollView>
             <MaintButton
                 title={translate('Create a visit')}
                 backgroundColor='black'
                 textColor='white'
                 textFontFamily='semiBold'
-                textFontSize={wp('6%')}
+                textFontSize={wp('5%')}
                 style={{
                     borderWidth: 0,
 
@@ -194,7 +206,7 @@ export default function MyPropertyDetails() {
                 defaultMargin={hp('0.25%')}
                 action={() => {
                     //@ts-ignore
-                    navigation.navigate('NewVisitScreen')
+                    navigation.navigate('NewVisitScreen', { car_id: car_id })
                 }}
             />
         </>

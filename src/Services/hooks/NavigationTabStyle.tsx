@@ -37,20 +37,27 @@ export const useHideTabs = () => {
 export const useTabStyle = (props?: any) => {
     const navigation = useNavigation()
     const route = useRoute()
-    const tabHiddenRoutes = ['CreateAccount', 'TutorialPage', 'PrivacyPolicy', 'Contact', 'FAQ', 'PropertyDetails', 'MyPropertiesDetails', 'AddCarPage','NewCenterScreen']
+    const tabHiddenRoutes = [
+        'CreateAccount',
+        'TutorialPage',
+        'PrivacyPolicy',
+        'Contact',
+        'FAQ',
+        'PropertyDetails',
+        'MyCarDetails',
+        'AddCarPage',
+        'NewCenterScreen',
+    ]
 
     useFocusEffect(
         useCallback(() => {
             // Get the current screen name from navigation state
             const state = navigation.getState()
-            console.log('Full navigation state:', JSON.stringify(state, null, 2))
 
             // Navigate through the state to find the current screen
             let currentRoute = state.routes[state.index]
-            console.log('Current tab route:', currentRoute.name)
 
             const shouldHideTabs = tabHiddenRoutes.includes(currentRoute.name)
-            console.log('Should hide tabs:', shouldHideTabs)
 
             if (shouldHideTabs) {
                 // Hide tabs

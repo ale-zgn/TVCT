@@ -41,12 +41,13 @@ export default function VisitStackScreen() {
                         title: translate('New visit'),
                         headerTitleStyle: headerTitleStyle,
                         headerTitleAlign: 'center',
+                        headerLeft: () => <DefaultHeaderLeft />,
                     }}
                 />
             )}
 
             <VisitStack.Screen
-                name='MyPropertiesDetails'
+                name='MyCarDetails'
                 component={MyPropertyDetails}
                 options={{
                     headerShown: false,

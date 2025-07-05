@@ -85,7 +85,7 @@ export default function HomeUnloggedPage() {
                 backgroundColor='white'
                 textColor='black'
                 textFontFamily='semiBold'
-                textFontSize={wp('6%')}
+                textFontSize={wp('5%')}
                 style={{
                     borderWidth: 0,
                     borderColor: '#452C21',

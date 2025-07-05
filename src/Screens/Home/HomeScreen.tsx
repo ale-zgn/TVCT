@@ -37,7 +37,8 @@ import { decodeToken } from 'react-jwt'
 import * as SecureStore from 'expo-secure-store'
 
 import { BlurView } from 'expo-blur'
-import { API } from 'src/Services/API'
+import { API, useGetCarsQuery } from 'src/Services/API'
+import { Car } from 'src/Services/Interface'
 import { store } from '../../Store/store'
 
 interface ServiceInterface {
@@ -134,6 +135,7 @@ export default function HomeScreen() {
         placeholder: 'Search a property',
         withPadding: true,
     })
+    const { data: cars } = useGetCarsQuery({})
     const baseOptions = {
         vertical: false,
         width: Dimensions.get('window').width,
@@ -240,28 +242,31 @@ export default function HomeScreen() {
                         keyExtractor={(item, index) => index.toString()}
                         ItemSeparatorComponent={() => <View style={styles.separator} />}
                     />
-                    <Title value={translate('My cars')} />
-
-                    <FlatList
-                        contentContainerStyle={styles.flatList}
-                        initialScrollIndex={0}
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        data={carsData}
-                        renderItem={({ item }) => <Property Userproperty={item} />}
-                        keyExtractor={(item, index) => index.toString()}
-                        ItemSeparatorComponent={() => <View style={styles.separator} />}
-                        ListEmptyComponent={() => (
-                            <View
-                                style={{
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    flex: 1,
-                                }}>
-                                <Text style={{ fontSize: wp('4.5%'), fontFamily: 'regular' }}>{translate('No properties found')}</Text>
-                            </View>
-                        )}
-                    />
+                    {cars && (
+                        <>
+                            <Title value={translate('My cars')} />
+                            <FlatList
+                                contentContainerStyle={styles.flatList}
+                                initialScrollIndex={0}
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                data={cars}
+                                renderItem={({ item }) => <CarItem Car={item} />}
+                                keyExtractor={(item, index) => index.toString()}
+                                ItemSeparatorComponent={() => <View style={styles.separator} />}
+                                ListEmptyComponent={() => (
+                                    <View
+                                        style={{
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            flex: 1,
+                                        }}>
+                                        <Text style={{ fontSize: wp('4.5%'), fontFamily: 'regular' }}>{translate('No properties found')}</Text>
+                                    </View>
+                                )}
+                            />
+                        </>
+                    )}
                     <Title value={translate('My visits')} />
 
                     <FlatList
@@ -371,21 +376,7 @@ function ServiceItem({ service }: { service: ServiceInterface }) {
     )
 }
 
-function Property({
-    Userproperty,
-}: {
-    Userproperty: {
-        name: string
-        genre: string
-        activity: string
-        image: string
-        fuelType: string
-        transmission: string
-        seatingCapacity: number
-        pricePerDay: number
-        features: string[]
-    }
-}) {
+function CarItem({ Car }: { Car: Car }) {
     const navigation = useNavigation()
     const { translate, language } = useTranslation()
 
@@ -394,8 +385,8 @@ function Property({
             style={styles.propertyWrapper}
             onPress={() => {
                 //@ts-ignore
-                navigation.navigate('MyPropertiesDetails', {
-                    property_id: Userproperty.id,
+                navigation.navigate('MyCarDetails', {
+                    car_id: Car.id,
                 })
             }}>
             <ImageBackground
@@ -403,19 +394,19 @@ function Property({
                     blurhash:
                         '|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[',
                 }}
-                source={Userproperty.image}>
+                source={require('../../../assets/images/exampleCar3.jpg')}>
                 <View style={styles.propertyOverlay}>
                     <View style={styles.statusWrapper}>
-                        <Text style={styles.status}>{Userproperty.activity}</Text>
+                        <Text style={styles.status}>{Car?.type}</Text>
                     </View>
 
-                    <Text style={styles.propertyName}>{Userproperty?.name}</Text>
+                    <Text style={styles.propertyName}>{Car?.construteur}</Text>
 
                     <View style={styles.propertyLocationWrapper}>
-                        <Text style={styles.propertyLocation}>{Userproperty.genre}</Text>
+                        <Text style={styles.propertyLocation}>{Car?.genre}</Text>
                     </View>
                     <View style={styles.propertyLocationWrapper}>
-                        <Text style={styles.propertyLocation}>{Userproperty.transmission}</Text>
+                        <Text style={styles.propertyLocation}>{Car?.matricule}</Text>
                     </View>
                     <View style={styles.propertyDetailsWrapper}>
                         <Text style={styles.propertyDetails}>{translate('View details')}</Text>

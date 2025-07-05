@@ -121,7 +121,7 @@ function TabBarLabel({ route, color, opacity }: { route: string; color?: string;
 }
 
 function TabNavigator() {
-    const tabHiddenScreens = ['CreateAccount', 'TutorialPage', 'PrivacyPolicy', 'Contact', 'FAQ', 'PropertyDetails', 'MyPropertiesDetails', 'AddCarPage']
+    const tabHiddenScreens = ['CreateAccount', 'TutorialPage', 'PrivacyPolicy', 'Contact', 'FAQ', 'PropertyDetails', 'MyCarDetails', 'AddCarPage']
     const { data: user } = useGetUserQuery({})
     const [isAdmin, setIsAdmin] = useState(false)
     useEffect(() => {
@@ -209,7 +209,7 @@ function TabNavigatorUnlogged() {
         'Contact',
         'FAQ',
         'PropertyDetails',
-        'MyPropertiesDetails',
+        'MyCarDetails',
         'AddCarPage',
         'NewCenterScreen',
     ]

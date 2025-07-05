@@ -1,16 +1,155 @@
 import DateTimePicker from '@react-native-community/datetimepicker'
+import { useRoute } from '@react-navigation/native'
 import React, { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import MapView, { Marker } from 'react-native-maps'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
+import { useGetCarsQuery, useGetCentersQuery, useGetUserQuery, useLazyGetCarQuery, useLazyGetCenterAvailibilityQuery } from 'src/Services/API'
+import { Car } from 'src/Services/Interface'
 import { ArrowDownIcon, PlusIcon } from '../../../assets/svgs/Svg'
 import Input from '../../Components/Shared/Input'
 import MaintButton from '../../Components/Shared/MaintButton'
 import Picker from '../../Components/Shared/Picker'
 import useOcrImagePicker from '../../Services/hooks/useOcr'
 import { useTranslation } from '../../Services/hooks/useTranslation'
+
+const fieldSections = [
+    {
+        sectionTitle: 'Vehicle Information',
+        fields: [
+            { name: 'matricule', label: 'Registration Number' },
+            { name: 'genre', label: 'Category' },
+            { name: 'type', label: 'Vehicle Type' },
+            { name: 'construteur', label: 'Manufacturer' },
+            { name: 'serie', label: 'Type Serial Number' },
+            { name: 'typemoteur', label: 'Engine Type' },
+            { name: 'dpmc', label: 'Date of First Registration (DPMC)' },
+        ],
+    },
+    {
+        sectionTitle: 'Specifications',
+        fields: [
+            { name: 'place', label: 'Number of Seats' },
+            { name: 'porte', label: 'Number of Doors' },
+            { name: 'inscrit', label: 'Registration Date' },
+        ],
+    },
+    {
+        sectionTitle: 'Owner',
+        fields: [
+            { name: 'nom', label: 'Full Name' },
+            { name: 'adresse', label: 'Address' },
+            { name: 'cin', label: 'National ID (CIN)' },
+        ],
+    },
+    {
+        sectionTitle: 'Commercial',
+        fields: [{ name: 'commercial', label: 'Commercial Type' }],
+    },
+]
+
+const conditionalFields = {
+    TU: [
+        { name: 'mat', label: 'Serial Number' },
+        { name: 'conf_mat', label: 'Confirm Serial Number' },
+        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+    ],
+    RS: [
+        { name: 'rs', label: 'RS' },
+        { name: 'conf_rs', label: 'Confirm RS' },
+        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+    ],
+    MOTO: [
+        { name: 'moto', label: 'Motorcycle' },
+        { name: 'conf_moto', label: 'Confirm Motorcycle' },
+        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+    ],
+    TRAC: [
+        { name: 'trac', label: 'Tractor' },
+        { name: 'conf_trac', label: 'Confirm Tractor' },
+        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+    ],
+    PAT: [
+        { name: 'pat', label: 'PAT (م أ ف)' },
+        { name: 'conf_pat', label: 'Confirm PAT (م أ ف)' },
+        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+    ],
+    CMD: [
+        { name: 'cmd', label: 'CMD (ر ب د)' },
+        { name: 'conf_cmd', label: 'Confirm CMD (ر ب د)' },
+        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+    ],
+    CD: [
+        { name: 'cd', label: 'CD (س د)' },
+        { name: 'conf_cd', label: 'Confirm CD (س د)' },
+        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+    ],
+    MD: [
+        { name: 'md', label: 'MD (ب د)' },
+        { name: 'conf_md', label: 'Confirm MD (ب د)' },
+        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+    ],
+    MC: [
+        { name: 'mc', label: 'MC (ث ق)' },
+        { name: 'conf_mc', label: 'Confirm MC (ث ق)' },
+        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+    ],
+    CC: [
+        { name: 'cc', label: 'CC (س ق)' },
+        { name: 'conf_cc', label: 'Confirm CC (س ق)' },
+        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+    ],
+    REM: [
+        { name: 'rem', label: 'REM (ع م)' },
+        { name: 'conf_rem', label: 'Confirm REM (ع م)' },
+        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+    ],
+    AA: [
+        { name: 'aa', label: 'AA (أ ف)' },
+        { name: 'conf_aa', label: 'Confirm AA (أ ف)' },
+        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+    ],
+    ES: [
+        { name: 'es', label: 'ES (م خ)' },
+        { name: 'conf_es', label: 'Confirm ES (م خ)' },
+        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+    ],
+    PE: [
+        { name: 'pe', label: 'PE' },
+        { name: 'conf_pe', label: 'Confirm PE' },
+        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+    ],
+    IT: [
+        { name: 'it', label: 'IT (ت م)' },
+        { name: 'conf_it', label: 'Confirm IT (ت م)' },
+        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+    ],
+    ETR: [
+        { name: 'chassis', label: 'Chassis Number' },
+        { name: 'conf_chassis', label: 'Confirm Chassis Number' },
+    ],
+}
+
+const registrationTypes = [
+    { label: 'Série Normale (TU)', value: 'TU' },
+    { label: 'Régime Suspensif (RS)', value: 'RS' },
+    { label: 'Moto (MOTO)', value: 'MOTO' },
+    { label: 'Tracteur (TRAC)', value: 'TRAC' },
+    { label: 'Personnel Administratif et Technique (PAT)', value: 'PAT' },
+    { label: 'Chef de Mission Diplomatique (CMD)', value: 'CMD' },
+    { label: 'Corps Diplomatique (CD)', value: 'CD' },
+    { label: 'Mission Diplomatique (MD)', value: 'MD' },
+    { label: 'Mission Consulaire (MC)', value: 'MC' },
+    { label: 'Corps Consulaire (CC)', value: 'CC' },
+    { label: 'Remorque (REM)', value: 'REM' },
+    { label: 'Appareil Agricole (AA)', value: 'AA' },
+    { label: 'Engin Spécial (ES)', value: 'ES' },
+    { label: "Propriété de l'État (PE)", value: 'PE' },
+    { label: 'Immatriculation Temporaire (IT)', value: 'IT' },
+    { label: 'Immatriculation Étrangère ou Douanière', value: 'ETR' },
+]
 
 export default function CreateVisitPage() {
     const { translate } = useTranslation()
@@ -25,21 +164,107 @@ export default function CreateVisitPage() {
     const [selectedDate, setSelectedDate] = useState(new Date())
     const [selectedTimeSlot, setSelectedTimeSlot] = useState(null)
     const [showDatePicker, setShowDatePicker] = useState(false)
+    const route = useRoute()
+    const { firstImage, secondImage, chooseImageSource, processImages } = useOcrImagePicker()
+    const [pickerValue, setPickerValue] = useState()
+    const car_id = route?.params?.car_id
+    const { data: user } = useGetUserQuery({})
+    const { data: centers } = useGetCentersQuery()
+    const { data: userCars } = useGetCarsQuery({})
+    const [car, setCar] = useState<Car | null>(null)
+    const [selectedCenter, setSelectedCenter] = useState()
+    const [getCar] = useLazyGetCarQuery()
+
+    const [getAvailibility] = useLazyGetCenterAvailibilityQuery()
+    const [availibility, setAvailibility] = useState()
+
+    useEffect(() => {
+        if (!selectedCenter) return
+
+        getAvailibility(selectedCenter)
+            .unwrap()
+            .then((data) => {
+                setAvailibility(data)
+            })
+            .catch((error) => {
+                console.error('Failed to fetch car:', error)
+            })
+    }, [selectedCenter])
+
+    useEffect(() => {
+        if (!car_id) return
+
+        getCar(car_id)
+            .unwrap()
+            .then((data) => {
+                setCar(data)
+            })
+            .catch((error) => {
+                console.error('Failed to fetch car:', error)
+            })
+    }, [car_id])
+
     const {
         control,
         handleSubmit,
         formState: { errors },
         setValue,
+        reset,
     } = useForm()
-    const { firstImage, secondImage, chooseImageSource, processImages } = useOcrImagePicker()
-    const [pickerValue, setPickerValue] = useState()
+
+    useEffect(() => {
+        if (car) {
+            if (car) {
+                reset({
+                    matricule: car.matricule,
+                    adresse: car.adresse,
+                    genre: car.genre,
+                    nom: car.nom,
+                    inscrit: car.inscrit,
+                    place: car.place,
+                    porte: car.porte,
+                    typemoteur: car.typemoteur,
+                    cin: car.cin,
+                    commercial: car.commercial,
+                    construteur: car.construteur,
+                    dpmc: car.dpmc,
+                    serie: car.serie,
+                    type: car.type,
+                })
+            }
+        }
+    }, [car])
+
     const applyOcrResult = (dataFromApi) => {
         Object.entries(dataFromApi).forEach(([name, value]) => {
             if (value !== undefined && value !== null) {
-                setValue(name, value, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                })
+                // Check if this field belongs to a prefix type
+                const isPrefixField = ['chassis'].includes(name)
+                const prefixType = ['TU', 'PE', 'PAT', 'CMD', 'CD', 'MD', 'MC', 'CC'].includes(pickerValue)
+
+                // Check if this is a field that should be split for prefix types
+                const shouldSplitForPrefix = prefixType && !isPrefixField && conditionalFields[pickerValue]?.some((field) => field.name === name)
+
+                if (shouldSplitForPrefix) {
+                    // Split the value and apply to prefix/suffix fields
+                    const parts = splitSerialNumber(value)
+                    if (parts) {
+                        setValue(`${name}_prefix`, parts.firstPart, {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                        })
+                        setValue(`${name}_suffix`, parts.lastPart, {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                        })
+                    }
+                } else {
+                    // Apply normally for non-prefix fields
+                    setValue(name, value, {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                    })
+                }
             }
         })
     }
@@ -48,8 +273,8 @@ export default function CreateVisitPage() {
         if (mapRef.current) {
             mapRef.current.animateToRegion(
                 {
-                    latitude: 35.8256,
-                    longitude: 10.6084,
+                    latitude: user?.address.lat,
+                    longitude: user?.address.lng,
                     latitudeDelta: 0.2044,
                     longitudeDelta: 0.0842,
                 },
@@ -57,106 +282,6 @@ export default function CreateVisitPage() {
             )
         }
     }, [mapRef])
-    const conditionalFields = {
-        TU: [
-            { name: 'serie', label: 'Serial Number' },
-            { name: 'conf_serie', label: 'Confirm Serial Number' },
-            { name: 'chassis', label: 'Last 5 characters of chassis number' },
-        ],
-        RS: [
-            { name: 'rs', label: 'RS' },
-            { name: 'conf_rs', label: 'Confirm RS' },
-            { name: 'chassis', label: 'Last 5 characters of chassis number' },
-        ],
-        MOTO: [
-            { name: 'moto', label: 'Motorcycle' },
-            { name: 'conf_moto', label: 'Confirm Motorcycle' },
-            { name: 'chassis', label: 'Last 5 characters of chassis number' },
-        ],
-        TRAC: [
-            { name: 'trac', label: 'Tractor' },
-            { name: 'conf_trac', label: 'Confirm Tractor' },
-            { name: 'chassis', label: 'Last 5 characters of chassis number' },
-        ],
-        PAT: [
-            { name: 'pat', label: 'PAT (م أ ف)' },
-            { name: 'conf_pat', label: 'Confirm PAT (م أ ف)' },
-            { name: 'chassis', label: 'Last 5 characters of chassis number' },
-        ],
-        CMD: [
-            { name: 'cmd', label: 'CMD (ر ب د)' },
-            { name: 'conf_cmd', label: 'Confirm CMD (ر ب د)' },
-            { name: 'chassis', label: 'Last 5 characters of chassis number' },
-        ],
-        CD: [
-            { name: 'cd', label: 'CD (س د)' },
-            { name: 'conf_cd', label: 'Confirm CD (س د)' },
-            { name: 'chassis', label: 'Last 5 characters of chassis number' },
-        ],
-        MD: [
-            { name: 'md', label: 'MD (ب د)' },
-            { name: 'conf_md', label: 'Confirm MD (ب د)' },
-            { name: 'chassis', label: 'Last 5 characters of chassis number' },
-        ],
-        MC: [
-            { name: 'mc', label: 'MC (ث ق)' },
-            { name: 'conf_mc', label: 'Confirm MC (ث ق)' },
-            { name: 'chassis', label: 'Last 5 characters of chassis number' },
-        ],
-        CC: [
-            { name: 'cc', label: 'CC (س ق)' },
-            { name: 'conf_cc', label: 'Confirm CC (س ق)' },
-            { name: 'chassis', label: 'Last 5 characters of chassis number' },
-        ],
-        REM: [
-            { name: 'rem', label: 'REM (ع م)' },
-            { name: 'conf_rem', label: 'Confirm REM (ع م)' },
-            { name: 'chassis', label: 'Last 5 characters of chassis number' },
-        ],
-        AA: [
-            { name: 'aa', label: 'AA (أ ف)' },
-            { name: 'conf_aa', label: 'Confirm AA (أ ف)' },
-            { name: 'chassis', label: 'Last 5 characters of chassis number' },
-        ],
-        ES: [
-            { name: 'es', label: 'ES (م خ)' },
-            { name: 'conf_es', label: 'Confirm ES (م خ)' },
-            { name: 'chassis', label: 'Last 5 characters of chassis number' },
-        ],
-        PE: [
-            { name: 'pe', label: 'PE' },
-            { name: 'conf_pe', label: 'Confirm PE' },
-            { name: 'chassis', label: 'Last 5 characters of chassis number' },
-        ],
-        IT: [
-            { name: 'it', label: 'IT (ت م)' },
-            { name: 'conf_it', label: 'Confirm IT (ت م)' },
-            { name: 'chassis', label: 'Last 5 characters of chassis number' },
-        ],
-        ETR: [
-            { name: 'chassis', label: 'Chassis Number' },
-            { name: 'conf_chassis', label: 'Confirm Chassis Number' },
-        ],
-    }
-
-    const registrationTypes = [
-        { label: 'Série Normale (TU)', value: 'TU' },
-        { label: 'Régime Suspensif (RS)', value: 'RS' },
-        { label: 'Moto (MOTO)', value: 'MOTO' },
-        { label: 'Tracteur (TRAC)', value: 'TRAC' },
-        { label: 'Personnel Administratif et Technique (PAT)', value: 'PAT' },
-        { label: 'Chef de Mission Diplomatique (CMD)', value: 'CMD' },
-        { label: 'Corps Diplomatique (CD)', value: 'CD' },
-        { label: 'Mission Diplomatique (MD)', value: 'MD' },
-        { label: 'Mission Consulaire (MC)', value: 'MC' },
-        { label: 'Corps Consulaire (CC)', value: 'CC' },
-        { label: 'Remorque (REM)', value: 'REM' },
-        { label: 'Appareil Agricole (AA)', value: 'AA' },
-        { label: 'Engin Spécial (ES)', value: 'ES' },
-        { label: "Propriété de l'État (PE)", value: 'PE' },
-        { label: 'Immatriculation Temporaire (IT)', value: 'IT' },
-        { label: 'Immatriculation Étrangère ou Douanière', value: 'ETR' },
-    ]
 
     const handleScan = async () => {
         try {
@@ -172,100 +297,167 @@ export default function CreateVisitPage() {
         console.log('Car info submitted:', data)
         // handle API call here
     }
-    const generateTimeSlots = () => {
-        const slots = []
-        for (let hour = 9; hour <= 17; hour++) {
-            const time12h = hour > 12 ? `${hour - 12}:00 PM` : `${hour}:00 AM`
-            const time24h = `${hour.toString().padStart(2, '0')}:00`
-            slots.push({
-                display: time12h,
-                value: time24h,
-                id: hour,
-            })
-        }
-        return slots
-    }
 
     const handleConfirmPayment = () => {
         // handle your payment logic here
         console.log('Selected Payment Method:', selectedPaymentMethod)
         setPaymentVisible(false)
     }
+    const getNextWeekday = (date) => {
+        const day = date.getDay()
+        const daysToAdd = day === 0 ? 1 : day === 6 ? 2 : 0 // Sunday = 0, Saturday = 6
+        const nextWeekday = new Date(date)
+        nextWeekday.setDate(date.getDate() + daysToAdd)
+        return nextWeekday
+    }
 
-    const timeSlots = generateTimeSlots()
+    // Updated onDateChange handler
+    const onDateChange = (event, date) => {
+        if (event.type === 'set' && date) {
+            const dayOfWeek = date.getDay()
 
-    const onDateChange = (event, selectedDate) => {
-        setShowDatePicker(false)
-        if (selectedDate) {
-            setSelectedDate(selectedDate)
-            setSelectedTimeSlot(null) // Reset time slot when date changes
+            // Check if selected date is weekend (Saturday = 6, Sunday = 0)
+            if (dayOfWeek === 0 || dayOfWeek === 6) {
+                // Get next weekday
+                const nextWeekday = getNextWeekday(date)
+                setSelectedDate(nextWeekday)
+            } else {
+                setSelectedDate(date)
+            }
         }
+        setShowDatePicker(false)
+    }
+
+    // Ensure initial date is not a weekend
+    const getInitialDate = () => {
+        const today = new Date()
+        return getNextWeekday(today)
     }
 
     const handleTimeSlotSelect = (slot) => {
-        setSelectedTimeSlot(slot)
+        setSelectedTimeSlot(slot.hour)
     }
 
-    const handleConfirm = () => {
-        if (selectedTimeSlot) {
-            const appointment = {
-                date: selectedDate.toDateString(),
-                time: selectedTimeSlot.display,
-                datetime: new Date(selectedDate.toDateString() + ' ' + selectedTimeSlot.value),
-            }
-            console.log('Selected appointment:', appointment)
-            // Handle your booking logic here
-            setModalVisible(false)
+    const handleConfirm = (data) => {
+        const info = {
+            matricule: data.matricule,
+            adresse: data.adresse,
+            genre: data.genre,
+            nom: data.nom,
+            inscrit: data.inscrit,
+            place: data.place,
+            porte: data.porte,
+            typemoteur: data.typemoteur,
+            cin: data.cin,
+            commercial: data.commercial,
+            construteur: data.construteur,
+            dpmc: data.dpmc,
+            serie: data.serie,
+            type: data.type,
+            date: `${selectedDate.toDateString()} ${selectedTimeSlot}`,
+            center: selectedCenter,
+        }
+
+        console.log('Selected appointment:', info)
+        // Handle your booking logic here
+        /*   setModalVisible(false)
             setDateVisible(false)
 
-            setPaymentVisible(true)
-        }
+            setPaymentVisible(true) */
     }
 
-    const fieldSections = [
-        {
-            sectionTitle: 'Vehicle Information',
-            fields: [
-                { name: 'matricule', label: 'Registration Number' },
-                { name: 'genre', label: 'Category' },
-                { name: 'type', label: 'Vehicle Type' },
-                { name: 'construteur', label: 'Manufacturer' },
-                { name: 'serie', label: 'Type Serial Number' },
-                { name: 'typemoteur', label: 'Engine Type' },
-                { name: 'dpmc', label: 'Date of First Registration (DPMC)' },
-            ],
-        },
-        {
-            sectionTitle: 'Specifications',
-            fields: [
-                { name: 'place', label: 'Number of Seats' },
-                { name: 'porte', label: 'Number of Doors' },
-                { name: 'inscrit', label: 'Registration Date' },
-            ],
-        },
-        {
-            sectionTitle: 'Owner',
-            fields: [
-                { name: 'nom', label: 'Full Name' },
-                { name: 'adresse', label: 'Address' },
-                { name: 'cin', label: 'National ID (CIN)' },
-            ],
-        },
-        {
-            sectionTitle: 'Commercial',
-            fields: [{ name: 'commercial', label: 'Commercial Type' }],
-        },
-    ]
+    const splitSerialNumber = (fullValue: string) => {
+        const cleaned = fullValue.replace(/\s+/g, '') // remove all spaces
+        const match = cleaned.match(/^(\d{4})[A-Z]{2,}\d{4}$/i)
+
+        if (!match) return null
+
+        const firstPart = cleaned.slice(0, 4)
+        const lastPart = cleaned.slice(-4)
+        return { firstPart, lastPart }
+    }
+
+    useEffect(() => {
+        if (!car?.matricule || !pickerValue) return
+
+        const parts = splitSerialNumber(car.matricule)
+        if (!parts) return
+
+        const fields = conditionalFields[pickerValue]
+        if (!fields || fields.length < 2) return
+
+        const isPrefixField = ['chassis'].includes(fields[0].name)
+        const prefixType = ['TU', 'PE', 'PAT', 'CMD', 'CD', 'MD', 'MC', 'CC'].includes(pickerValue)
+
+        // Check if this is a prefix type field (not chassis)
+        if (prefixType && !isPrefixField) {
+            // For prefix fields, set both main and confirmation fields
+            setValue(`${fields[0].name}_prefix`, parts.firstPart, {
+                shouldDirty: true,
+                shouldValidate: true,
+            })
+
+            setValue(`${fields[0].name}_suffix`, parts.lastPart, {
+                shouldDirty: true,
+                shouldValidate: true,
+            })
+
+            // Set confirmation field (fields[1] is the conf field)
+            setValue(`${fields[1].name}_prefix`, parts.firstPart, {
+                shouldDirty: true,
+                shouldValidate: true,
+            })
+
+            setValue(`${fields[1].name}_suffix`, parts.lastPart, {
+                shouldDirty: true,
+                shouldValidate: true,
+            })
+        } else {
+            // For non-prefix fields, use original field names
+            setValue(fields[0].name, parts.firstPart, {
+                shouldDirty: true,
+                shouldValidate: true,
+            })
+
+            setValue(fields[1].name, parts.lastPart, {
+                shouldDirty: true,
+                shouldValidate: true,
+            })
+        }
+    }, [car?.matricule, pickerValue])
 
     return (
         <KeyboardAwareScrollView style={styles.container} showsVerticalScrollIndicator={false}>
             <ScrollView contentContainerStyle={styles.container}>
                 <View style={styles.sectionContainer}>
+                    {user && (
+                        <Picker
+                            title='Select Car'
+                            onValueChange={(value) =>
+                                getCar(value)
+                                    .unwrap()
+                                    .then((data) => {
+                                        setCar(data)
+                                    })
+                                    .catch((error) => {
+                                        console.error('Failed to fetch car:', error)
+                                    })
+                            }
+                            items={userCars?.map((car) => {
+                                return { label: car.matricule, value: car.id }
+                            })}
+                            placeholder={'Select Car'}
+                            // @ts-ignore
+                            Icon={() => {
+                                return <ArrowDownIcon color='#000' />
+                            }}
+                        />
+                    )}
                     <Picker
-                        title="type de la série d'immatriculation"
+                        title='type of registration series'
                         onValueChange={(value) => setPickerValue(value)}
                         items={registrationTypes}
-                        placeholder={'Filter by'}
+                        placeholder={'type of registration series'}
                         // @ts-ignore
                         Icon={() => {
                             return <ArrowDownIcon color='#000' />
@@ -355,12 +547,12 @@ export default function CreateVisitPage() {
 
                                         if (prefixType && !isPrefixField) {
                                             return (
-                                                <View>
+                                                <View key={field.name}>
                                                     <Text style={[styles.prefixText, { marginBottom: hp('1%'), color: 'grey' }]}>{field.label}</Text>
 
-                                                    <View style={styles.inputsContainer} key={field.name}>
+                                                    <View style={styles.inputsContainer}>
                                                         <Input
-                                                            name={field.name}
+                                                            name={`${field.name}_prefix`} // Changed: Added _prefix suffix
                                                             placeholder='XXXX'
                                                             control={control}
                                                             rules={{
@@ -373,7 +565,7 @@ export default function CreateVisitPage() {
                                                             <Text style={styles.prefixText}>{pickerValue}</Text>
                                                         </View>
                                                         <Input
-                                                            name={field.name}
+                                                            name={`${field.name}_suffix`} // Changed: Added _suffix suffix
                                                             placeholder='XXXX'
                                                             control={control}
                                                             rules={{
@@ -450,30 +642,30 @@ export default function CreateVisitPage() {
                             style={styles.map}
                             ref={mapRef}
                             initialRegion={{
-                                latitude: 35.8256,
-                                longitude: 10.6084,
+                                latitude: user?.address.lat,
+                                longitude: user?.address.lng,
                                 latitudeDelta: 0.2044,
                                 longitudeDelta: 0.0842,
                             }}
                             showsUserLocation={true}>
-                            <Marker
-                                onPress={() => {
-                                    setDateVisible(true)
-                                }}
-                                coordinate={{
-                                    latitude: 35.8256,
-                                    longitude: 10.6084,
-                                }}></Marker>
-                            <Marker
-                                coordinate={{
-                                    latitude: 35.4,
-                                    longitude: 10.6084,
-                                }}></Marker>
+                            {centers?.map((center) => {
+                                return (
+                                    <Marker
+                                        onPress={() => {
+                                            setSelectedCenter(center.id)
+                                            setModalVisible(false)
+                                            setDateVisible(true)
+                                        }}
+                                        coordinate={{
+                                            latitude: center.latitude,
+                                            longitude: center.longitude,
+                                        }}></Marker>
+                                )
+                            })}
                         </MapView>
                         <Pressable
                             onPress={() => {
                                 setModalVisible(false)
-                                setDateVisible(true)
                             }}
                             style={{
                                 position: 'absolute',
@@ -491,7 +683,13 @@ export default function CreateVisitPage() {
                     </View>
                 </Modal>
 
-                <Modal animationType='slide' transparent={true} visible={dateVisible} onRequestClose={() => setDateVisible(false)}>
+                <Modal
+                    animationType='slide'
+                    transparent={true}
+                    visible={dateVisible}
+                    onRequestClose={() => {
+                        setDateVisible(false), setModalVisible(true)
+                    }}>
                     <Pressable onPress={() => setPaymentVisible(false)} style={styles.modalView}>
                         <View
                             onStartShouldSetResponder={() => true}
@@ -552,6 +750,7 @@ export default function CreateVisitPage() {
                                     style={{
                                         fontSize: 16,
                                         fontWeight: '600',
+                                        marginTop: hp('2%'),
                                         marginBottom: 10,
                                         color: '#333',
                                     }}>
@@ -564,29 +763,29 @@ export default function CreateVisitPage() {
                                             flexWrap: 'wrap',
                                             justifyContent: 'space-between',
                                         }}>
-                                        {timeSlots.map((slot) => (
+                                        {availibility?.map((slot) => (
                                             <Pressable
-                                                key={slot.id}
+                                                key={`${slot.date}-${slot.hour}`}
                                                 style={[
                                                     {
                                                         width: '48%',
-                                                        backgroundColor: selectedTimeSlot?.id === slot.id ? '#85553A' : '#fff',
+                                                        backgroundColor: selectedTimeSlot === slot.hour ? '#85553A' : '#fff',
                                                         padding: 12,
                                                         borderRadius: 8,
                                                         marginBottom: 10,
                                                         alignItems: 'center',
                                                         borderWidth: 1,
-                                                        borderColor: selectedTimeSlot?.id === slot.id ? '#85553A' : '#e0e0e0',
+                                                        borderColor: selectedTimeSlot === slot.hour ? '#85553A' : '#e0e0e0',
                                                     },
                                                 ]}
                                                 onPress={() => handleTimeSlotSelect(slot)}>
                                                 <Text
                                                     style={{
                                                         fontSize: 14,
-                                                        color: selectedTimeSlot?.id === slot.id ? 'white' : '#333',
-                                                        fontWeight: selectedTimeSlot?.id === slot.id ? '600' : 'normal',
+                                                        color: selectedTimeSlot === slot.hour ? 'white' : '#333',
+                                                        fontWeight: selectedTimeSlot === slot.hour ? '600' : 'normal',
                                                     }}>
-                                                    {slot.display}
+                                                    {slot.hour}
                                                 </Text>
                                             </Pressable>
                                         ))}
@@ -599,6 +798,7 @@ export default function CreateVisitPage() {
                                 style={{
                                     flexDirection: 'row',
                                     justifyContent: 'space-between',
+                                    paddingBottom: hp('2%'),
                                 }}>
                                 <Pressable
                                     style={{
@@ -610,7 +810,7 @@ export default function CreateVisitPage() {
                                         alignItems: 'center',
                                     }}
                                     onPress={() => {
-                                        setDateVisible(false)
+                                        setDateVisible(false), setModalVisible(true)
                                     }}>
                                     <Text style={{ fontSize: 16, color: '#666' }}>Cancel</Text>
                                 </Pressable>
@@ -624,7 +824,7 @@ export default function CreateVisitPage() {
                                         marginLeft: 10,
                                         alignItems: 'center',
                                     }}
-                                    onPress={handleConfirm}
+                                    onPress={handleSubmit(handleConfirm)}
                                     disabled={!selectedTimeSlot}>
                                     <Text
                                         style={{

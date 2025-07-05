@@ -26,7 +26,7 @@ export default function VisitUnloggedStackScreen() {
                 }}
             />
             <VisitUnloggedStack.Screen
-                name='MyPropertiesDetails'
+                name='MyCarDetails'
                 component={MyPropertyDetails}
                 options={{
                     headerShown: false,

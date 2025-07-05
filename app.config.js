@@ -5,15 +5,13 @@ module.exports = ({ config }) => {
             slug: 'TVCT',
             version: '1.0.0',
             orientation: 'portrait',
-            owner: 'alee.zgn',
+            owner: 'wissal',
             icon: './assets/splash-icon.png',
             scheme: 'carvisit',
+            privacy: 'unlisted',
             userInterfaceStyle: 'automatic',
             jsEngine: 'hermes',
             newArchEnabled: true,
-            ios: {
-                supportsTablet: true,
-            },
             android: {
                 adaptiveIcon: {
                     foregroundImage: './assets/splash-icon.png',
@@ -22,6 +20,11 @@ module.exports = ({ config }) => {
                 edgeToEdgeEnabled: true,
 
                 package: 'com.alee.carvisit',
+            },
+            ios: {
+                buildNumber: '1',
+                supportsTablet: false,
+                bundleIdentifier: 'carvisit',
             },
             web: {
                 bundler: 'metro',
