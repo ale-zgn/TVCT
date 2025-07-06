@@ -21,8 +21,6 @@ export default function CentersScreen() {
     }, [searchText, centers])
     const navigation = useNavigation()
 
-    console.log(centers)
-
     return (
         <View style={{ backgroundColor: 'white', flex: 1, paddingBottom: hp('10%') }}>
             <Title value={translate('Available centers')} />

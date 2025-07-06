@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import * as SecureStore from 'expo-secure-store'
 import Config from '../Config'
-import { Car, Center, User, UserCreateForm } from './Interface'
+import { Car, Center, Reservation, User, UserCreateForm, UserNotification } from './Interface'
 
 export interface ResponseType {
     data: any
@@ -10,7 +10,7 @@ export interface ResponseType {
 
 export const API = createApi({
     reducerPath: 'API',
-    tagTypes: ['UserMe'],
+    tagTypes: ['UserMe', 'Reservation', 'Center', 'Car', 'Notification'],
     baseQuery: fetchBaseQuery({
         baseUrl: Config.EXPO_PUBLIC_API_ROOT,
         prepareHeaders: async (headers) => {
@@ -69,6 +69,7 @@ export const API = createApi({
                 body: data,
             }),
             transformResponse: (response: ResponseType) => response.data,
+            invalidatesTags: ['Car'],
         }),
         getCars: builder.query<Car[], any>({
             query: () => ({
@@ -76,6 +77,7 @@ export const API = createApi({
                 method: 'GET',
             }),
             transformResponse: (response: ResponseType) => response.data,
+            providesTags: ['Car'],
         }),
         getCar: builder.query<Car, number>({
             query: (id) => ({
@@ -91,6 +93,7 @@ export const API = createApi({
                 body: data,
             }),
             transformResponse: (response: ResponseType) => response.data,
+            invalidatesTags: ['Center'],
         }),
         getCenters: builder.query<Center[], void>({
             query: (id) => ({
@@ -98,13 +101,60 @@ export const API = createApi({
                 method: 'GET',
             }),
             transformResponse: (response: ResponseType) => response.data,
+            providesTags: ['Center'],
         }),
-        getCenterAvailibility: builder.query<any, void>({
-            query: (id) => ({
-                url: `/centers/${id}`,
+
+        getCenterAvailibility: builder.query<any, { id: number; date: string }>({
+            query: ({ id, date }) => ({
+                url: `/centers/${id}?date=${date}`,
                 method: 'GET',
             }),
             transformResponse: (response: ResponseType) => response.data,
+            providesTags: ['Center'],
+        }),
+        createReservation: builder.mutation<any, any>({
+            query: (data) => ({
+                url: '/reservations',
+                method: 'POST',
+                body: data,
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+            invalidatesTags: ['Reservation', 'Center', 'Car'],
+        }),
+        updateReservationStatus: builder.mutation<Reservation, { id: number; status: number }>({
+            query: ({ id, status }) => ({
+                url: `/reservations/${id}/status`,
+                method: 'PUT',
+                body: {
+                    status: status,
+                },
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+            invalidatesTags: ['Reservation'],
+        }),
+        getReservations: builder.query<Reservation[], void>({
+            query: () => ({
+                url: `/users/me/reservations`,
+                method: 'GET',
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+            providesTags: ['Reservation'],
+        }),
+        getAllReservations: builder.query<Reservation[], void>({
+            query: () => ({
+                url: `/reservations`,
+                method: 'GET',
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+            providesTags: ['Reservation'],
+        }),
+        getNotifications: builder.query<UserNotification[], void>({
+            query: () => ({
+                url: `/users/me/notifications`,
+                method: 'GET',
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+            providesTags: ['Notification'],
         }),
     }),
 })
@@ -122,4 +172,10 @@ export const {
     useCreateCenterMutation,
     useGetCentersQuery,
     useLazyGetCenterAvailibilityQuery,
+    useCreateReservationMutation,
+
+    useUpdateReservationStatusMutation,
+    useGetReservationsQuery,
+    useGetAllReservationsQuery,
+    useGetNotificationsQuery,
 } = API

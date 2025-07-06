@@ -1,12 +1,24 @@
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { useRoute } from '@react-navigation/native'
+import * as FileSystem from 'expo-file-system'
+import * as MediaLibrary from 'expo-media-library'
+import moment from 'moment'
 import React, { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, Alert, Image, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
+import { ALERT_TYPE, Toast } from 'react-native-alert-notification'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import MapView, { Marker } from 'react-native-maps'
+import QRCode from 'react-native-qrcode-svg'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
-import { useGetCarsQuery, useGetCentersQuery, useGetUserQuery, useLazyGetCarQuery, useLazyGetCenterAvailibilityQuery } from 'src/Services/API'
+import {
+    useCreateReservationMutation,
+    useGetCarsQuery,
+    useGetCentersQuery,
+    useGetUserQuery,
+    useLazyGetCarQuery,
+    useLazyGetCenterAvailibilityQuery,
+} from 'src/Services/API'
 import { Car } from 'src/Services/Interface'
 import { ArrowDownIcon, PlusIcon } from '../../../assets/svgs/Svg'
 import Input from '../../Components/Shared/Input'
@@ -151,6 +163,13 @@ const registrationTypes = [
     { label: 'Immatriculation Étrangère ou Douanière', value: 'ETR' },
 ]
 
+const getNextWeekday = (date) => {
+    const day = date.getDay()
+    const daysToAdd = day === 0 ? 1 : day === 6 ? 2 : 0 // Sunday = 0, Saturday = 6
+    const nextWeekday = new Date(date)
+    nextWeekday.setDate(date.getDate() + daysToAdd)
+    return nextWeekday
+}
 export default function CreateVisitPage() {
     const { translate } = useTranslation()
     const mapRef = useRef<MapView>(null)
@@ -159,9 +178,11 @@ export default function CreateVisitPage() {
     const [modalVisible, setModalVisible] = useState(false)
     const [dateVisible, setDateVisible] = useState(false)
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'online' | 'on_place' | null>(null)
-
+    const [createVisit, createVisitMutation] = useCreateReservationMutation()
     const [paymentVisible, setPaymentVisible] = useState(false)
-    const [selectedDate, setSelectedDate] = useState(new Date())
+
+    // Initialize selectedDate with a weekday
+    const [selectedDate, setSelectedDate] = useState(() => getNextWeekday(new Date()))
     const [selectedTimeSlot, setSelectedTimeSlot] = useState(null)
     const [showDatePicker, setShowDatePicker] = useState(false)
     const route = useRoute()
@@ -174,14 +195,46 @@ export default function CreateVisitPage() {
     const [car, setCar] = useState<Car | null>(null)
     const [selectedCenter, setSelectedCenter] = useState()
     const [getCar] = useLazyGetCarQuery()
-
     const [getAvailibility] = useLazyGetCenterAvailibilityQuery()
     const [availibility, setAvailibility] = useState()
+    const [stripe, setStripe] = useState(false)
+    const [qrVisible, setQrVisible] = useState(false)
+    const [qrData, setQrData] = useState<string>('')
+    const [selectedCar, setSelectedCar] = useState()
+
+    const qrCodeRef = useRef(null)
+
+    const saveQrToDisk = async () => {
+        const { status } = await MediaLibrary.requestPermissionsAsync()
+        if (status !== 'granted') {
+            Alert.alert('Permission denied', 'Storage permission is required.')
+            return
+        }
+
+        qrCodeRef.current?.toDataURL(async (dataURL) => {
+            try {
+                const path = FileSystem.cacheDirectory + `qr_code_${Date.now()}.png`
+                const imageData = dataURL.replace('data:image/png;base64,', '')
+
+                await FileSystem.writeAsStringAsync(path, imageData, {
+                    encoding: FileSystem.EncodingType.Base64,
+                })
+
+                const asset = await MediaLibrary.createAssetAsync(path)
+                await MediaLibrary.createAlbumAsync('Download', asset, false)
+
+                Alert.alert('Success', 'QR Code saved to your gallery!')
+            } catch (err) {
+                console.error('Error saving QR:', err)
+                Alert.alert('Error', 'Failed to save QR code.')
+            }
+        })
+    }
 
     useEffect(() => {
         if (!selectedCenter) return
 
-        getAvailibility(selectedCenter)
+        getAvailibility({ id: selectedCenter, date: moment(selectedDate).locale('en').format('YYYY-MM-DD') })
             .unwrap()
             .then((data) => {
                 setAvailibility(data)
@@ -189,19 +242,29 @@ export default function CreateVisitPage() {
             .catch((error) => {
                 console.error('Failed to fetch car:', error)
             })
-    }, [selectedCenter])
+    }, [selectedCenter, selectedDate])
+
+    useEffect(() => {
+        if (car_id) {
+            setSelectedCar(car_id)
+        }
+    }, [car_id])
 
     useEffect(() => {
         if (!car_id) return
 
-        getCar(car_id)
-            .unwrap()
-            .then((data) => {
+        setSelectedCar(car_id)
+
+        const loadCar = async () => {
+            try {
+                const data = await getCar(car_id).unwrap()
                 setCar(data)
-            })
-            .catch((error) => {
+            } catch (error) {
                 console.error('Failed to fetch car:', error)
-            })
+            }
+        }
+
+        loadCar()
     }, [car_id])
 
     const {
@@ -273,8 +336,8 @@ export default function CreateVisitPage() {
         if (mapRef.current) {
             mapRef.current.animateToRegion(
                 {
-                    latitude: user?.address.lat,
-                    longitude: user?.address.lng,
+                    latitude: user?.address.lat ?? 35.8256,
+                    longitude: user?.address.lng ?? 10.6084,
                     latitudeDelta: 0.2044,
                     longitudeDelta: 0.0842,
                 },
@@ -293,22 +356,139 @@ export default function CreateVisitPage() {
         }
     }
 
-    const onSubmit = async (data: any) => {
-        console.log('Car info submitted:', data)
-        // handle API call here
+    const handleConfirmPaymentFinale = async (data) => {
+        let info
+        if (car) {
+            info = {
+                car_id: car.id,
+                date: `${selectedDate.toDateString()} ${selectedTimeSlot}`,
+                center_id: selectedCenter,
+                user_id: user?.id || null,
+            }
+        } else {
+            info = {
+                car_info: {
+                    matricule: data.matricule,
+                    adresse: data.adresse,
+                    genre: data.genre,
+                    nom: data.nom,
+                    inscrit: data.inscrit,
+                    place: data.place,
+                    porte: data.porte,
+                    typemoteur: data.typemoteur,
+                    cin: data.cin,
+                    commercial: data.commercial,
+                    construteur: data.construteur,
+                    dpmc: data.dpmc,
+                    serie: data.serie,
+                    type: data.type,
+                },
+                date: `${selectedDate.toDateString()} ${selectedTimeSlot}`,
+                center_id: selectedCenter,
+                user_id: user?.id || null,
+            }
+        }
+
+        try {
+            await createVisit(info).then((res) => {
+                if (!res.error) {
+                    setStripe(false)
+                    setQrData(JSON.stringify(res.data)) // you can encode only the ID or details if you want
+                    setQrVisible(true)
+
+                    Toast.show({
+                        type: ALERT_TYPE.SUCCESS,
+                        title: translate('Appointment created successfully'),
+                    })
+                }
+            })
+        } catch (error: any) {
+            console.error(error)
+            Toast.show({
+                type: ALERT_TYPE.DANGER,
+                title: translate('Failed to create appointment'),
+            })
+        }
     }
 
-    const handleConfirmPayment = () => {
-        // handle your payment logic here
-        console.log('Selected Payment Method:', selectedPaymentMethod)
+    const resetAll = () => {
+        reset() // reset react-hook-form fields
+        setSelectedDate(getNextWeekday(new Date()))
+        setSelectedTimeSlot(null)
+        setSelectedPaymentMethod(null)
+        setSelectedCar(undefined)
+        setSelectedCenter(undefined)
+        setCar(null)
+        setModalVisible(false)
+        setDateVisible(false)
         setPaymentVisible(false)
+        setQrVisible(false)
+        setStripe(false)
+        setPickerValue(undefined)
+        setAvailibility(undefined)
     }
-    const getNextWeekday = (date) => {
-        const day = date.getDay()
-        const daysToAdd = day === 0 ? 1 : day === 6 ? 2 : 0 // Sunday = 0, Saturday = 6
-        const nextWeekday = new Date(date)
-        nextWeekday.setDate(date.getDate() + daysToAdd)
-        return nextWeekday
+
+    const handleConfirmPayment = async (data) => {
+        // handle your payment logic here
+        if (selectedPaymentMethod == 'online') {
+            setPaymentVisible(false)
+
+            setStripe(true)
+        } else {
+            let info
+            if (car) {
+                info = {
+                    car_id: car.id,
+                    date: `${selectedDate.toDateString()} ${selectedTimeSlot}`,
+                    center_id: selectedCenter,
+                    user_id: user?.id || null,
+                }
+            } else {
+                info = {
+                    car_info: {
+                        matricule: data.matricule,
+                        adresse: data.adresse,
+                        genre: data.genre,
+                        nom: data.nom,
+                        inscrit: data.inscrit,
+                        place: data.place,
+                        porte: data.porte,
+                        typemoteur: data.typemoteur,
+                        cin: data.cin,
+                        commercial: data.commercial,
+                        construteur: data.construteur,
+                        dpmc: data.dpmc,
+                        serie: data.serie,
+                        type: data.type,
+                    },
+                    date: `${selectedDate.toDateString()} ${selectedTimeSlot}`,
+                    center_id: selectedCenter,
+                    user_id: user?.id || null,
+                }
+            }
+
+            try {
+                await createVisit(info).then((res) => {
+                    if (!res.error) {
+                        setModalVisible(false)
+                        setDateVisible(false)
+                        setPaymentVisible(false)
+                        resetAll()
+
+                        Toast.show({
+                            type: ALERT_TYPE.SUCCESS,
+                            title: translate('Appointment created successfully'),
+                        })
+                    }
+                })
+            } catch (error: any) {
+                console.error(error)
+                Toast.show({
+                    type: ALERT_TYPE.DANGER,
+                    title: translate('Failed to create appointment'),
+                })
+            }
+        }
     }
 
     // Updated onDateChange handler
@@ -329,41 +509,15 @@ export default function CreateVisitPage() {
     }
 
     // Ensure initial date is not a weekend
-    const getInitialDate = () => {
-        const today = new Date()
-        return getNextWeekday(today)
-    }
 
     const handleTimeSlotSelect = (slot) => {
         setSelectedTimeSlot(slot.hour)
     }
 
-    const handleConfirm = (data) => {
-        const info = {
-            matricule: data.matricule,
-            adresse: data.adresse,
-            genre: data.genre,
-            nom: data.nom,
-            inscrit: data.inscrit,
-            place: data.place,
-            porte: data.porte,
-            typemoteur: data.typemoteur,
-            cin: data.cin,
-            commercial: data.commercial,
-            construteur: data.construteur,
-            dpmc: data.dpmc,
-            serie: data.serie,
-            type: data.type,
-            date: `${selectedDate.toDateString()} ${selectedTimeSlot}`,
-            center: selectedCenter,
-        }
-
-        console.log('Selected appointment:', info)
-        // Handle your booking logic here
-        /*   setModalVisible(false)
-            setDateVisible(false)
-
-            setPaymentVisible(true) */
+    const handleConfirm = async () => {
+        setModalVisible(false)
+        setDateVisible(false)
+        setPaymentVisible(true)
     }
 
     const splitSerialNumber = (fullValue: string) => {
@@ -433,19 +587,11 @@ export default function CreateVisitPage() {
                     {user && (
                         <Picker
                             title='Select Car'
-                            onValueChange={(value) =>
-                                getCar(value)
-                                    .unwrap()
-                                    .then((data) => {
-                                        setCar(data)
-                                    })
-                                    .catch((error) => {
-                                        console.error('Failed to fetch car:', error)
-                                    })
-                            }
+                            onValueChange={(value) => setSelectedCar(value)}
                             items={userCars?.map((car) => {
                                 return { label: car.matricule, value: car.id }
                             })}
+                            value={selectedCar}
                             placeholder={'Select Car'}
                             // @ts-ignore
                             Icon={() => {
@@ -642,8 +788,8 @@ export default function CreateVisitPage() {
                             style={styles.map}
                             ref={mapRef}
                             initialRegion={{
-                                latitude: user?.address.lat,
-                                longitude: user?.address.lng,
+                                latitude: user?.address.lat ?? 35.8256,
+                                longitude: user?.address.lng ?? 10.6084,
                                 latitudeDelta: 0.2044,
                                 longitudeDelta: 0.0842,
                             }}
@@ -824,7 +970,7 @@ export default function CreateVisitPage() {
                                         marginLeft: 10,
                                         alignItems: 'center',
                                     }}
-                                    onPress={handleSubmit(handleConfirm)}
+                                    onPress={handleConfirm}
                                     disabled={!selectedTimeSlot}>
                                     <Text
                                         style={{
@@ -926,7 +1072,9 @@ export default function CreateVisitPage() {
                                         marginRight: 10,
                                         alignItems: 'center',
                                     }}
-                                    onPress={() => setPaymentVisible(false)}>
+                                    onPress={() => {
+                                        setPaymentVisible(false), setDateVisible(true)
+                                    }}>
                                     <Text style={{ fontSize: 16, color: '#666' }}>Cancel</Text>
                                 </Pressable>
 
@@ -939,18 +1087,138 @@ export default function CreateVisitPage() {
                                         marginLeft: 10,
                                         alignItems: 'center',
                                     }}
-                                    onPress={handleConfirmPayment}
+                                    onPress={handleSubmit(handleConfirmPayment)}
                                     disabled={!selectedPaymentMethod}>
-                                    <Text
-                                        style={{
-                                            fontSize: 16,
-                                            color: selectedPaymentMethod ? 'white' : '#888',
-                                            fontWeight: '600',
-                                        }}>
-                                        Confirm
-                                    </Text>
+                                    {createVisitMutation.isLoading ? (
+                                        <ActivityIndicator />
+                                    ) : (
+                                        <Text
+                                            style={{
+                                                fontSize: 16,
+                                                color: selectedPaymentMethod ? 'white' : '#888',
+                                                fontWeight: '600',
+                                            }}>
+                                            Confirm
+                                        </Text>
+                                    )}
                                 </Pressable>
                             </View>
+                        </View>
+                    </Pressable>
+                </Modal>
+
+                <Modal
+                    animationType='slide'
+                    transparent={true}
+                    visible={stripe}
+                    onRequestClose={() => {
+                        setStripe(false), setPaymentVisible(true)
+                    }}>
+                    <Pressable
+                        onPress={() => {
+                            setStripe(false), setPaymentVisible(true)
+                        }}
+                        style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                        <View
+                            onStartShouldSetResponder={() => true}
+                            style={{
+                                height: '90%',
+                                backgroundColor: 'white',
+                                width: '100%',
+                                position: 'absolute',
+                                bottom: 0,
+                                borderTopLeftRadius: 20,
+                                borderTopRightRadius: 20,
+                                padding: 20,
+                            }}>
+                            <ScrollView showsVerticalScrollIndicator={false}>
+                                <Text style={{ fontSize: 22, fontWeight: '700', marginBottom: 20 }}>Add card</Text>
+
+                                {/* Contact Information */}
+                                <Text style={{ fontWeight: '600', color: '#888', marginBottom: 8 }}>Contact information</Text>
+                                <TextInput placeholder='Email' style={styles.stripeInput} />
+                                <View style={{ flexDirection: 'row', gap: 8 }}>
+                                    <View style={[styles.stripeInput, { flex: 1, flexDirection: 'row', alignItems: 'center' }]}>
+                                        <Text>🇹🇳 +216</Text>
+                                    </View>
+                                    <TextInput placeholder='Phone number' style={[styles.stripeInput, { flex: 2 }]} />
+                                </View>
+
+                                {/* Card Information */}
+                                <Text style={{ fontWeight: '600', color: '#888', marginVertical: 12 }}>Card information</Text>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <TextInput placeholder='Name on card' style={[styles.stripeInput, { flex: 1 }]} />
+                                </View>
+                                <TextInput placeholder='Card number' style={styles.stripeInput} />
+                                <View style={{ flexDirection: 'row', gap: 8 }}>
+                                    <TextInput placeholder='MM / YY' style={[styles.stripeInput, { flex: 1 }]} />
+                                    <TextInput placeholder='CVC' style={[styles.stripeInput, { flex: 1 }]} />
+                                </View>
+
+                                {/* Billing Address */}
+                                <Text style={{ fontWeight: '600', color: '#888', marginVertical: 12 }}>Billing address</Text>
+                                <TextInput placeholder='Country or region' style={styles.stripeInput} value='Tunisia' />
+                                <TextInput placeholder='Address line 1' style={styles.stripeInput} />
+                                <TextInput placeholder='Address line 2 (optional)' style={styles.stripeInput} />
+                                <TextInput placeholder='City' style={styles.stripeInput} />
+                                <TextInput placeholder='State' style={styles.stripeInput} value='Sousse' />
+                                <TextInput placeholder='ZIP' style={styles.stripeInput} />
+
+                                {/* Pay Button */}
+                                <Pressable
+                                    onPress={handleSubmit(handleConfirmPaymentFinale)}
+                                    style={{
+                                        marginTop: 24,
+                                        backgroundColor: '#007aff',
+                                        padding: 16,
+                                        borderRadius: 8,
+                                        alignItems: 'center',
+                                    }}>
+                                    {createVisitMutation.isLoading ? (
+                                        <ActivityIndicator />
+                                    ) : (
+                                        <Text style={{ color: 'white', fontWeight: '600', fontSize: 16 }}>Pay $97.42</Text>
+                                    )}
+                                </Pressable>
+                            </ScrollView>
+                        </View>
+                    </Pressable>
+                </Modal>
+
+                <Modal animationType='slide' transparent={true} visible={qrVisible} onRequestClose={() => setQrVisible(false)}>
+                    <Pressable onPress={() => setQrVisible(false)} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                        <View
+                            onStartShouldSetResponder={() => true}
+                            style={{
+                                height: '40%',
+                                backgroundColor: 'white',
+                                width: '100%',
+                                position: 'absolute',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                bottom: 0,
+                                borderTopLeftRadius: 20,
+                                borderTopRightRadius: 20,
+                                padding: 20,
+                            }}>
+                            <QRCode value={qrData} size={130} getRef={(c) => (qrCodeRef.current = c)} />
+                            <Text style={{ fontSize: 18, marginVertical: 20, width: '70%', textAlign: 'center' }}>
+                                {translate('Present the QR code the day of the visit')}
+                            </Text>
+
+                            <Pressable
+                                onPress={async () => {
+                                    await saveQrToDisk(), setQrVisible(false), resetAll()
+                                }}
+                                style={{
+                                    backgroundColor: '#000',
+                                    padding: 16,
+                                    width: '90%',
+                                    alignItems: 'center',
+                                    borderRadius: 10,
+                                }}>
+                                <Text style={{ color: 'white' }}>{translate('Download QR code')}</Text>
+                            </Pressable>
                         </View>
                     </Pressable>
                 </Modal>
@@ -965,6 +1233,15 @@ const styles = StyleSheet.create({
         width: wp('100%'),
         backgroundColor: '#fcfcfc',
         paddingBottom: hp('10%'),
+    },
+    stripeInput: {
+        borderWidth: 1,
+        borderColor: '#ddd',
+        borderRadius: 8,
+        padding: 12,
+        marginBottom: 12,
+        fontSize: 16,
+        backgroundColor: '#fff',
     },
     title: {
         fontSize: wp('10%'),

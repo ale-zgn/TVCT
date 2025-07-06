@@ -42,7 +42,7 @@ export interface Reservation {
 
     center: Center
     center_id: number
-
+    status: ReservationStatus
     payment: Payment
 }
 
@@ -80,6 +80,12 @@ export interface UserNotification {
 enum UserRole {
     ADMIN = 0,
     USER = 1,
+}
+
+export enum ReservationStatus {
+    PENDING = 0,
+    ACCEPTED = 1,
+    REJECTED = 2,
 }
 
 export interface Payment {

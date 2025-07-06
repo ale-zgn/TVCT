@@ -1,19 +1,20 @@
 import { useNavigation } from '@react-navigation/native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { widthPercentageToDP as wp } from 'react-native-responsive-screen'
+import useSocket from 'src/Services/hooks/useSocket'
 import { NotificationIcon } from '../../../assets/svgs/Svg'
-import { useGetUserQuery } from '../../Services/API'
+import { useGetNotificationsQuery } from '../../Services/API'
 import { S3Image } from '../Shared/S3Image'
 
 export default function DefaultHeader() {
     const navigation = useNavigation()
-    const { data: user } = useGetUserQuery({})
+    const { data: notifications, refetch: notificationsRefetch } = useGetNotificationsQuery()
 
     const [notificationCount, setNotificationCount] = useState(0)
     const [surveyCount, setSurveyCount] = useState(0)
 
-    /*   useEffect(() => {
+    useEffect(() => {
         let count = 0
         notifications?.forEach((notification) => {
             if (!notification.is_opened) {
@@ -21,15 +22,15 @@ export default function DefaultHeader() {
             }
         })
         setNotificationCount(count)
-    }, [notifications]) */
+    }, [notifications])
 
-    /* useSocket({
+    useSocket({
         onReactive: async (event) => {
-            if ((event.action === "create" || event.action === "update") && event.model === "Notification") {
+            if (event.model === 'UserNotification') {
                 notificationsRefetch()
             }
         },
-    }) */
+    })
 
     return (
         <View style={styles.Container}>
@@ -87,7 +88,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         right: -3,
         top: -2,
-        backgroundColor: '#3DBC17',
+        backgroundColor: '#0D47A1',
         borderRadius: 100,
     },
 })

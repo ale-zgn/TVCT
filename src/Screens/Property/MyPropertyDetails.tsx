@@ -1,17 +1,20 @@
 import { useNavigation, useRoute } from '@react-navigation/native'
-import React, { useRef } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import MapView from 'react-native-maps'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
-import { ArrowLeftIcon, LeftArrowIcon, RightArrowIcon } from '../../../assets/svgs/Svg'
+import { ArrowLeftIcon, RightArrowIcon } from '../../../assets/svgs/Svg'
 import { useTranslation } from '../../Services/hooks/useTranslation'
 
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import { BlurView } from 'expo-blur'
 import { Image } from 'expo-image'
+import moment from 'moment'
 import MaintButton from 'src/Components/Shared/MaintButton'
 import Title from 'src/Components/Shared/Title'
 import { useGetCarQuery } from 'src/Services/API'
+import useSocket from 'src/Services/hooks/useSocket'
+import { ReservationStatus } from 'src/Services/Interface'
 import { carsData } from '../Home/HomeScreen'
 export default function MyPropertyDetails() {
     const navigation = useNavigation()
@@ -20,7 +23,20 @@ export default function MyPropertyDetails() {
 
     const route = useRoute()
     const { car_id } = route.params as { car_id: number }
-    const { data: car, isFetching: propretyIsFetching, refetch } = useGetCarQuery(car_id)
+    const { data: car, isFetching, refetch } = useGetCarQuery(car_id)
+
+    useSocket({
+        onReactive: async (event) => {
+            console.log(event)
+
+            if (event.model === 'Reservation') {
+                refetch()
+            }
+        },
+    })
+    useEffect(() => {
+        refetch()
+    }, [])
     const property = carsData[0]
     const vehicleSections = [
         {
@@ -116,7 +132,7 @@ export default function MyPropertyDetails() {
                             }}>
                             <Text
                                 style={{
-                                    fontSize: wp('4.5%'),
+                                    fontSize: wp('4%'),
                                     fontWeight: 'bold',
                                     marginBottom: hp('1%'),
                                     color: '#000',
@@ -133,7 +149,7 @@ export default function MyPropertyDetails() {
                                         justifyContent: 'space-between',
                                         marginBottom: hp('1%'),
                                     }}>
-                                    <Text style={{ fontSize: wp('3.75%'), color: '#333' }}>{field.label}</Text>
+                                    <Text style={{ fontSize: wp('3.5%'), color: '#333' }}>{field.label}</Text>
                                     <Text
                                         style={{
                                             fontSize: wp('3.25%'),
@@ -168,47 +184,45 @@ export default function MyPropertyDetails() {
                             <View>
                                 <Text
                                     style={{
-                                        fontSize: wp('4.2%'),
-                                        marginBottom: hp('1%'),
-                                        fontWeight: 'bold',
+                                        fontSize: wp('4%'),
+                                        fontWeight: '500',
                                         color: '#000',
+                                        marginBottom: hp('1%'),
                                     }}>
-                                    {translate('Car Matricule')}: {car?.matricule}
+                                    {translate('Car Matricule')}: {car?.matricule}{' '}
+                                    {reservation.status === ReservationStatus.PENDING && <Text style={{ fontSize: wp('3.5%'), color: '#444' }}>(pending)</Text>}
                                 </Text>
-                                <Text style={{ fontSize: wp('3.8%'), color: '#444' }}>
-                                    {translate('Visit at')} {reservation.center?.longitude || 'Center'} -{' '}
-                                    {new Date(reservation.date).toLocaleTimeString(language === 'en' ? 'en-US' : 'fr-FR', {
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                    })}
+                                <Text style={{ fontSize: wp('3.5%'), color: '#444' }}>
+                                    {translate('Visit at')} {reservation.center.name} - {moment(reservation.date).locale('en').format('DD MMM YYYY HH:mm')}
                                 </Text>
                             </View>
-                            {language === 'en' ? <RightArrowIcon color='#000' /> : <LeftArrowIcon color='#000' />}
                         </BlurView>
                     ))
                 ) : (
                     <Text style={{ fontSize: wp('3.8%'), color: '#444' }}>{translate('You have no reservations')}</Text>
                 )}
             </ScrollView>
-            <MaintButton
-                title={translate('Create a visit')}
-                backgroundColor='black'
-                textColor='white'
-                textFontFamily='semiBold'
-                textFontSize={wp('5%')}
-                style={{
-                    borderWidth: 0,
+            {(car?.reservations.length === 0 || !car?.reservations) && (
+                <MaintButton
+                    title={translate('Create a visit')}
+                    backgroundColor='black'
+                    textColor='white'
+                    textFontFamily='semiBold'
+                    textFontSize={wp('5%')}
+                    style={{
+                        borderWidth: 0,
 
-                    borderColor: '#452C21',
-                    height: hp('8%'),
-                    marginBottom: hp('5%'),
-                }}
-                defaultMargin={hp('0.25%')}
-                action={() => {
-                    //@ts-ignore
-                    navigation.navigate('NewVisitScreen', { car_id: car_id })
-                }}
-            />
+                        borderColor: '#452C21',
+                        height: hp('8%'),
+                        marginBottom: hp('5%'),
+                    }}
+                    defaultMargin={hp('0.25%')}
+                    action={() => {
+                        //@ts-ignore
+                        navigation.navigate('NewVisitScreen', { car_id: car_id })
+                    }}
+                />
+            )}
         </>
     )
 }

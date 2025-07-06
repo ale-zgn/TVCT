@@ -37,8 +37,8 @@ import { decodeToken } from 'react-jwt'
 import * as SecureStore from 'expo-secure-store'
 
 import { BlurView } from 'expo-blur'
-import { API, useGetCarsQuery } from 'src/Services/API'
-import { Car } from 'src/Services/Interface'
+import { API, useGetCarsQuery, useGetReservationsQuery } from 'src/Services/API'
+import { Car, ReservationStatus } from 'src/Services/Interface'
 import { store } from '../../Store/store'
 
 interface ServiceInterface {
@@ -136,6 +136,7 @@ export default function HomeScreen() {
         withPadding: true,
     })
     const { data: cars } = useGetCarsQuery({})
+    const { data: visits } = useGetReservationsQuery()
     const baseOptions = {
         vertical: false,
         width: Dimensions.get('window').width,
@@ -177,6 +178,8 @@ export default function HomeScreen() {
             }
         })
     }, [])
+
+    console.log(visits)
 
     return (
         <View style={styles.wrapper}>
@@ -267,12 +270,13 @@ export default function HomeScreen() {
                             />
                         </>
                     )}
+
                     <Title value={translate('My visits')} />
 
                     <FlatList
                         contentContainerStyle={styles.flatList}
                         showsVerticalScrollIndicator={false}
-                        data={['', '', '']} // Replace with real data later
+                        data={visits} // Replace with real data later
                         renderItem={({ item }) => (
                             <BlurView
                                 intensity={10}
@@ -290,15 +294,18 @@ export default function HomeScreen() {
                                 <View>
                                     <Text
                                         style={{
-                                            fontSize: wp('4.2%'),
-                                            fontWeight: 'bold',
+                                            fontSize: wp('4%'),
+                                            fontWeight: '500',
                                             color: '#000',
+                                            marginBottom: hp('1%'),
                                         }}>
-                                        Car Matricule ABC-123
+                                        Car Matricule {item.car.matricule}
+                                        {item.status === ReservationStatus.PENDING && <Text style={{ fontSize: wp('3.5%'), color: '#444' }}> (pending)</Text>}
                                     </Text>
-                                    <Text style={{ fontSize: wp('3.8%'), color: '#444' }}>Visit at City Center - 10:30 AM</Text>
+                                    <Text style={{ fontSize: wp('3.5%'), color: '#444' }}>
+                                        Visit at {item.center.name} - {moment(item.date).locale('en').format('DD MMM YYYY HH:mm')}
+                                    </Text>
                                 </View>
-                                {selectedLanguage === 'en' ? <RightArrowIcon color='#000' /> : <LeftArrowIcon color='#000' />}
                             </BlurView>
                         )}
                         keyExtractor={(item, index) => index.toString()}
@@ -310,7 +317,7 @@ export default function HomeScreen() {
                                     justifyContent: 'center',
                                     flex: 1,
                                 }}>
-                                <Text style={{ fontSize: wp('4.5%'), fontFamily: 'regular' }}>{translate('No properties found')}</Text>
+                                <Text style={{ fontSize: wp('4.5%'), fontFamily: 'regular' }}>{translate('No reservations found')}</Text>
                             </View>
                         )}
                     />

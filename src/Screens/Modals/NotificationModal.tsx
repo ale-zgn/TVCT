@@ -1,8 +1,10 @@
 import { useNavigation } from '@react-navigation/native'
 import moment from 'moment'
 import React from 'react'
-import { Image, Pressable, SectionList, StyleSheet, Text, View } from 'react-native'
+import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
+import { useGetNotificationsQuery } from 'src/Services/API'
+import useSocket from '../../Services/hooks/useSocket'
 import { useTranslation } from '../../Services/hooks/useTranslation'
 const mockNotifications = [
     {
@@ -59,32 +61,36 @@ const mockNotifications = [
 ]
 
 export default function NotificationModal() {
-    /* const { data: notifications, refetch: notificationsRefetch } = useGetUserNotificationsQuery()
-    const { data: surveys, refetch: surveysRefetch, isFetching } = useGetUserSurveysQuery() */
-    // const userNotifications = notifications
-
-    /*   useEffect(() => {
-        surveysRefetch()
-    }, [])
+    const { data: notifications, refetch: notificationsRefetch } = useGetNotificationsQuery()
 
     useSocket({
         onReactive: async (event) => {
-            if ((event.action === "create" || event.action === "update") && event.model === "Notification") {
+            if (event.model === 'UserNotification') {
                 notificationsRefetch()
             }
         },
-    }) */
+    })
 
     return (
         <View style={styles.wrapper}>
-            <SectionList
-                sections={[{ title: 'Notifications', data: mockNotifications, type: 'notification' }]}
+            <FlatList
+                data={notifications}
                 keyExtractor={(item, index) => index.toString()}
-                renderItem={({ item, section, index }) => {
+                renderItem={({ item, index }) => {
                     return <NotificationItem notification={item} />
                 }}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ padding: 15 }}
+                ListEmptyComponent={
+                    <View
+                        style={{
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flex: 1,
+                        }}>
+                        <Text style={{ fontSize: wp('4.5%'), fontFamily: 'regular', color: 'black' }}>No notifications found</Text>
+                    </View>
+                }
             />
         </View>
     )
