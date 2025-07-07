@@ -6,9 +6,9 @@ import { useNavigation } from '@react-navigation/native'
 import { useForm } from 'react-hook-form'
 import { ALERT_TYPE, Toast } from 'react-native-alert-notification'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
-import { useCreateUserMutation, useLazyGetAddressPredictionsQuery } from 'src/Services/API'
 import Input from '../../Components/Shared/Input'
 import MaintButton from '../../Components/Shared/MaintButton'
+import { useCreateUserMutation, useLazyGetAddressPredictionsQuery } from '../../Services/API'
 import { useTranslation } from '../../Services/hooks/useTranslation'
 
 export default function CreateAccountPage() {
@@ -57,6 +57,8 @@ export default function CreateAccountPage() {
             console.error(error)
         }
     }
+
+    console.log(addressSuggestions)
 
     return (
         <KeyboardAwareScrollView
@@ -175,6 +177,8 @@ export default function CreateAccountPage() {
                             setSelectedAddress(value)
                             if (value.length > 2) {
                                 getAddress(value).then((res) => {
+                                    console.log('res', res)
+
                                     const predictions = res?.data || []
                                     const mapped = predictions.map((item: any) => ({
                                         description: item.description,

@@ -6,8 +6,8 @@ import { Keyboard, Pressable, SafeAreaView, StatusBar, StyleSheet, Text, TextInp
 import { ALERT_TYPE, Toast } from 'react-native-alert-notification'
 import PhoneInput from 'react-native-phone-input'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
-import { useAuthMutation } from 'src/Services/API'
 import MaintButton from '../../Components/Shared/MaintButton'
+import { useAuthMutation } from '../../Services/API'
 import { useTranslation } from '../../Services/hooks/useTranslation'
 
 export default function LoginPage() {

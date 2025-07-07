@@ -17,7 +17,7 @@ export const ServicesIcon = () => (
         />
         <Defs>
             <LinearGradient id='paint0_linear_12_735' x1={0.125} y1={0.375} x2={24.5764} y2={20.7846} gradientUnits='userSpaceOnUse'>
-                <Stop stopColor='#60CF9B' />
+                <Stop stopColor='#0D47A1' />
                 <Stop offset={1} stopColor='#169DAF' />
             </LinearGradient>
         </Defs>
@@ -31,7 +31,7 @@ export const CheckShieldIcon = () => (
         />
         <Defs>
             <LinearGradient id='paint0_linear_12_739' x1={0.625} y1={0.336426} x2={24.7292} y2={14.7751} gradientUnits='userSpaceOnUse'>
-                <Stop stopColor='#60CF9B' />
+                <Stop stopColor='#0D47A1' />
                 <Stop offset={1} stopColor='#169DAF' />
             </LinearGradient>
         </Defs>
@@ -45,7 +45,7 @@ export const PossibilitiesIcon = () => (
         />
         <Defs>
             <LinearGradient id='paint0_linear_12_732' x1={2.25} y1={2.25} x2={30.845} y2={23.6058} gradientUnits='userSpaceOnUse'>
-                <Stop stopColor='#60CF9B' />
+                <Stop stopColor='#0D47A1' />
                 <Stop offset={1} stopColor='#169DAF' />
             </LinearGradient>
         </Defs>

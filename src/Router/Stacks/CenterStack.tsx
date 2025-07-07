@@ -1,48 +1,56 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import React from 'react'
 import DefaultHeaderLeft from 'src/Components/Header/DefaultHeaderLeft'
+import CentersScreen from 'src/Screens/Center/CentersScreen'
+import CreateCenterPage from 'src/Screens/Center/CreateCenterScreen'
 import AddCarPage from 'src/Screens/Property/AddCarPage'
-import CreateVisitPage from 'src/Screens/Visit/CreateVisitPage'
-import MyPropertyDetails from '../../Screens/Property/MyPropertyDetails'
 import { headerTitleStyle } from '../../Screens/Service/HeaderTitleStyle'
 import { useTabStyle } from '../../Services/hooks/NavigationTabStyle'
 import { useTranslation } from '../../Services/hooks/useTranslation'
 
-const VisitUnloggedStack = createNativeStackNavigator()
+const CenterStack = createNativeStackNavigator()
 
-export default function VisitUnloggedStackScreen() {
+export default function CenterStackScreen() {
     const { translate } = useTranslation()
+    const isAdmin = false // Replace with your actual logic
     useTabStyle()
 
     return (
-        <VisitUnloggedStack.Navigator>
-            <VisitUnloggedStack.Screen
-                name='NewVisit'
-                component={CreateVisitPage}
+        <CenterStack.Navigator>
+            <CenterStack.Screen
+                name='CentersScreen'
+                component={CentersScreen}
                 options={{
-                    title: translate('New visit'),
+                    title: translate('Centers'),
+                    headerLeft: () => <DefaultHeaderLeft />,
+
                     headerTitleStyle: headerTitleStyle,
                     headerTitleAlign: 'center',
                 }}
             />
-            <VisitUnloggedStack.Screen
-                name='MyCarDetails'
-                component={MyPropertyDetails}
+
+            <CenterStack.Screen
+                name='NewCenterScreen'
+                component={CreateCenterPage}
                 options={{
-                    headerShown: false,
+                    title: translate('Add center'),
+                    headerLeft: () => <DefaultHeaderLeft />,
+
+                    headerTitleStyle: headerTitleStyle,
                     headerTitleAlign: 'center',
                 }}
             />
-            <VisitUnloggedStack.Screen
+
+            <CenterStack.Screen
                 name='AddCarPage'
                 component={AddCarPage}
                 options={{
                     headerLeft: () => <DefaultHeaderLeft />,
-                    title: `${translate('Add car')}`,
+                    title: translate('Add car'),
                     headerTitleStyle: headerTitleStyle,
                     headerTitleAlign: 'center',
                 }}
             />
-        </VisitUnloggedStack.Navigator>
+        </CenterStack.Navigator>
     )
 }

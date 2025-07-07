@@ -36,7 +36,9 @@ import { decodeToken } from 'react-jwt'
 
 import * as SecureStore from 'expo-secure-store'
 
-import { API } from 'src/Services/API'
+import { BlurView } from 'expo-blur'
+import { API, useGetCarsQuery, useGetReservationsQuery } from 'src/Services/API'
+import { Car, ReservationStatus } from 'src/Services/Interface'
 import { store } from '../../Store/store'
 
 interface ServiceInterface {
@@ -129,7 +131,12 @@ export const carsData: {
 
 export default function HomeScreen() {
     const { translate, language: selectedLanguage } = useTranslation()
-    const { searchBar, value } = useSearchBar({ placeholder: 'Search a property', withPadding: true })
+    const { searchBar, value } = useSearchBar({
+        placeholder: 'Search a property',
+        withPadding: true,
+    })
+    const { data: cars } = useGetCarsQuery({})
+    const { data: visits } = useGetReservationsQuery()
     const baseOptions = {
         vertical: false,
         width: Dimensions.get('window').width,
@@ -171,6 +178,8 @@ export default function HomeScreen() {
             }
         })
     }, [])
+
+    console.log(visits)
 
     return (
         <View style={styles.wrapper}>
@@ -236,20 +245,79 @@ export default function HomeScreen() {
                         keyExtractor={(item, index) => index.toString()}
                         ItemSeparatorComponent={() => <View style={styles.separator} />}
                     />
-                    <Title value={translate('My cars')} />
+                    {cars && (
+                        <>
+                            <Title value={translate('My cars')} />
+                            <FlatList
+                                contentContainerStyle={styles.flatList}
+                                initialScrollIndex={0}
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                data={cars}
+                                renderItem={({ item }) => <CarItem Car={item} />}
+                                keyExtractor={(item, index) => index.toString()}
+                                ItemSeparatorComponent={() => <View style={styles.separator} />}
+                                ListEmptyComponent={() => (
+                                    <View
+                                        style={{
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            flex: 1,
+                                        }}>
+                                        <Text style={{ fontSize: wp('4.5%'), fontFamily: 'regular' }}>{translate('No properties found')}</Text>
+                                    </View>
+                                )}
+                            />
+                        </>
+                    )}
+
+                    <Title value={translate('My visits')} />
 
                     <FlatList
                         contentContainerStyle={styles.flatList}
-                        initialScrollIndex={0}
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        data={carsData}
-                        renderItem={({ item }) => <Property Userproperty={item} />}
+                        showsVerticalScrollIndicator={false}
+                        data={visits} // Replace with real data later
+                        renderItem={({ item }) => (
+                            <BlurView
+                                intensity={10}
+                                tint='dark'
+                                style={{
+                                    flexDirection: 'row',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    width: '100%',
+                                    marginVertical: hp('0.5%'),
+                                    padding: hp('2%'),
+                                    borderRadius: 16,
+                                    overflow: 'hidden', // Important for rounded corners on blur
+                                }}>
+                                <View>
+                                    <Text
+                                        style={{
+                                            fontSize: wp('4%'),
+                                            fontWeight: '500',
+                                            color: '#000',
+                                            marginBottom: hp('1%'),
+                                        }}>
+                                        Car Matricule {item.car.matricule}
+                                        {item.status === ReservationStatus.PENDING && <Text style={{ fontSize: wp('3.5%'), color: '#444' }}> (pending)</Text>}
+                                    </Text>
+                                    <Text style={{ fontSize: wp('3.5%'), color: '#444' }}>
+                                        Visit at {item.center.name} - {moment(item.date).locale('en').format('DD MMM YYYY HH:mm')}
+                                    </Text>
+                                </View>
+                            </BlurView>
+                        )}
                         keyExtractor={(item, index) => index.toString()}
                         ItemSeparatorComponent={() => <View style={styles.separator} />}
                         ListEmptyComponent={() => (
-                            <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-                                <Text style={{ fontSize: wp('4.5%'), fontFamily: 'regular' }}>{translate('No properties found')}</Text>
+                            <View
+                                style={{
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flex: 1,
+                                }}>
+                                <Text style={{ fontSize: wp('4.5%'), fontFamily: 'regular' }}>{translate('No reservations found')}</Text>
                             </View>
                         )}
                     />
@@ -258,7 +326,10 @@ export default function HomeScreen() {
                         scrollEnabled={false}
                         showsVerticalScrollIndicator={false}
                         data={DriveInformations}
-                        contentContainerStyle={{ paddingHorizontal: wp('4.5%'), marginTop: wp('4.5%') }}
+                        contentContainerStyle={{
+                            paddingHorizontal: wp('4.5%'),
+                            marginTop: wp('4.5%'),
+                        }}
                         renderItem={({ item }) => (
                             <View
                                 style={{
@@ -312,21 +383,7 @@ function ServiceItem({ service }: { service: ServiceInterface }) {
     )
 }
 
-function Property({
-    Userproperty,
-}: {
-    Userproperty: {
-        name: string
-        genre: string
-        activity: string
-        image: string
-        fuelType: string
-        transmission: string
-        seatingCapacity: number
-        pricePerDay: number
-        features: string[]
-    }
-}) {
+function CarItem({ Car }: { Car: Car }) {
     const navigation = useNavigation()
     const { translate, language } = useTranslation()
 
@@ -335,26 +392,28 @@ function Property({
             style={styles.propertyWrapper}
             onPress={() => {
                 //@ts-ignore
-                navigation.navigate('MyPropertiesDetails', { property_id: Userproperty.id })
+                navigation.navigate('MyCarDetails', {
+                    car_id: Car.id,
+                })
             }}>
             <ImageBackground
                 placeholder={{
                     blurhash:
                         '|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[',
                 }}
-                source={Userproperty.image}>
+                source={require('../../../assets/images/exampleCar3.jpg')}>
                 <View style={styles.propertyOverlay}>
                     <View style={styles.statusWrapper}>
-                        <Text style={styles.status}>{Userproperty.activity}</Text>
+                        <Text style={styles.status}>{Car?.type}</Text>
                     </View>
 
-                    <Text style={styles.propertyName}>{Userproperty?.name}</Text>
+                    <Text style={styles.propertyName}>{Car?.construteur}</Text>
 
                     <View style={styles.propertyLocationWrapper}>
-                        <Text style={styles.propertyLocation}>{Userproperty.genre}</Text>
+                        <Text style={styles.propertyLocation}>{Car?.genre}</Text>
                     </View>
                     <View style={styles.propertyLocationWrapper}>
-                        <Text style={styles.propertyLocation}>{Userproperty.transmission}</Text>
+                        <Text style={styles.propertyLocation}>{Car?.matricule}</Text>
                     </View>
                     <View style={styles.propertyDetailsWrapper}>
                         <Text style={styles.propertyDetails}>{translate('View details')}</Text>

@@ -1,21 +1,16 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import * as SecureStore from 'expo-secure-store'
 import Config from '../Config'
-interface UserCreateForm {
-    phone: string
-    email: string
-    password: string
-    full_name: string
-    address: string
-}
-interface ResponseType {
+import { Car, Center, Reservation, User, UserCreateForm, UserNotification } from './Interface'
+
+export interface ResponseType {
     data: any
     status: string
 }
 
 export const API = createApi({
     reducerPath: 'API',
-    tagTypes: ['UserMe'],
+    tagTypes: ['UserMe', 'Reservation', 'Center', 'Car', 'Notification'],
     baseQuery: fetchBaseQuery({
         baseUrl: Config.EXPO_PUBLIC_API_ROOT,
         prepareHeaders: async (headers) => {
@@ -39,7 +34,7 @@ export const API = createApi({
             }),
             transformResponse: (response: ResponseType) => response.data,
         }),
-        createUser: builder.mutation<any, UserCreateForm>({
+        createUser: builder.mutation<User, UserCreateForm>({
             query: ({ phone, email, full_name, address, password }) => ({
                 url: '/users',
                 method: 'POST',
@@ -53,6 +48,13 @@ export const API = createApi({
             }),
             transformResponse: (response: ResponseType) => response.data,
         }),
+        getUser: builder.query<User, any>({
+            query: () => ({
+                url: `/users/me`,
+                method: 'GET',
+            }),
+            transformResponse: (response: ResponseType) => response.data.user,
+        }),
         getAddressPredictions: builder.query<any, string>({
             query: (keyword) => ({
                 url: `/users/me/address/predictions?keyword=${keyword}`,
@@ -60,7 +62,120 @@ export const API = createApi({
             }),
             transformResponse: (response: ResponseType) => response.data,
         }),
+        createCar: builder.mutation<any, any>({
+            query: (data) => ({
+                url: '/users/me/cars',
+                method: 'POST',
+                body: data,
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+            invalidatesTags: ['Car'],
+        }),
+        getCars: builder.query<Car[], any>({
+            query: () => ({
+                url: '/users/me/cars',
+                method: 'GET',
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+            providesTags: ['Car'],
+        }),
+        getCar: builder.query<Car, number>({
+            query: (id) => ({
+                url: `/users/me/cars/${id}`,
+                method: 'GET',
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+        }),
+        createCenter: builder.mutation<any, any>({
+            query: (data) => ({
+                url: '/centers',
+                method: 'POST',
+                body: data,
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+            invalidatesTags: ['Center'],
+        }),
+        getCenters: builder.query<Center[], void>({
+            query: (id) => ({
+                url: `/centers`,
+                method: 'GET',
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+            providesTags: ['Center'],
+        }),
+
+        getCenterAvailibility: builder.query<any, { id: number; date: string }>({
+            query: ({ id, date }) => ({
+                url: `/centers/${id}?date=${date}`,
+                method: 'GET',
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+            providesTags: ['Center'],
+        }),
+        createReservation: builder.mutation<any, any>({
+            query: (data) => ({
+                url: '/reservations',
+                method: 'POST',
+                body: data,
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+            invalidatesTags: ['Reservation', 'Center', 'Car'],
+        }),
+        updateReservationStatus: builder.mutation<Reservation, { id: number; status: number }>({
+            query: ({ id, status }) => ({
+                url: `/reservations/${id}/status`,
+                method: 'PUT',
+                body: {
+                    status: status,
+                },
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+            invalidatesTags: ['Reservation'],
+        }),
+        getReservations: builder.query<Reservation[], void>({
+            query: () => ({
+                url: `/users/me/reservations`,
+                method: 'GET',
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+            providesTags: ['Reservation'],
+        }),
+        getAllReservations: builder.query<Reservation[], void>({
+            query: () => ({
+                url: `/reservations`,
+                method: 'GET',
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+            providesTags: ['Reservation'],
+        }),
+        getNotifications: builder.query<UserNotification[], void>({
+            query: () => ({
+                url: `/users/me/notifications`,
+                method: 'GET',
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+            providesTags: ['Notification'],
+        }),
     }),
 })
 
-export const { useAuthMutation, useGetAddressPredictionsQuery, useLazyGetAddressPredictionsQuery, useCreateUserMutation } = API
+export const {
+    useAuthMutation,
+    useGetAddressPredictionsQuery,
+    useLazyGetAddressPredictionsQuery,
+    useCreateUserMutation,
+    useGetUserQuery,
+    useCreateCarMutation,
+    useGetCarsQuery,
+    useGetCarQuery,
+    useLazyGetCarQuery,
+    useCreateCenterMutation,
+    useGetCentersQuery,
+    useLazyGetCenterAvailibilityQuery,
+    useCreateReservationMutation,
+
+    useUpdateReservationStatusMutation,
+    useGetReservationsQuery,
+    useGetAllReservationsQuery,
+    useGetNotificationsQuery,
+} = API

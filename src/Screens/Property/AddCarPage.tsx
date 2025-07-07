@@ -1,8 +1,11 @@
+import { useNavigation } from '@react-navigation/native'
 import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { ALERT_TYPE, Toast } from 'react-native-alert-notification'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
+import { useCreateCarMutation, useGetUserQuery } from 'src/Services/API'
 import { PlusIcon } from '../../../assets/svgs/Svg'
 import Input from '../../Components/Shared/Input'
 import MaintButton from '../../Components/Shared/MaintButton'
@@ -11,7 +14,8 @@ import { useTranslation } from '../../Services/hooks/useTranslation'
 
 export default function AddCarPage() {
     const { translate } = useTranslation()
-
+    const { data: user } = useGetUserQuery({})
+    const navigation = useNavigation()
     const [scanVisible, setScanVisible] = useState(false)
     const {
         control,
@@ -20,6 +24,7 @@ export default function AddCarPage() {
         setValue,
     } = useForm()
     const { firstImage, secondImage, chooseImageSource, processImages } = useOcrImagePicker()
+    const [createCar] = useCreateCarMutation()
 
     const applyOcrResult = (dataFromApi) => {
         Object.entries(dataFromApi).forEach(([name, value]) => {
@@ -43,42 +48,51 @@ export default function AddCarPage() {
     }
 
     const onSubmit = async (data: any) => {
-        console.log('Car info submitted:', data)
-        // handle API call here
+        try {
+            await createCar(data).unwrap() // unwrap if you're using RTK Query
+
+            Toast.show({
+                type: ALERT_TYPE.SUCCESS,
+                title: translate('Car created successfully'),
+            })
+            navigation.goBack()
+        } catch (error: any) {
+            console.error(error)
+        } // handle API call here
     }
 
     const fieldSections = [
         {
-            sectionTitle: 'Informations du véhicule',
+            sectionTitle: 'Vehicle Information',
             fields: [
-                { name: 'matricule', label: "Numéro d'immatriculation" },
-                { name: 'genre', label: 'Genre' },
-                { name: 'type', label: 'Type de véhicule' },
-                { name: 'construteur', label: 'Constructeur' },
-                { name: 'serie', label: 'Numéro de série du type' },
-                { name: 'typemoteur', label: 'Type du moteur' },
-                { name: 'dpmc', label: 'Date de première mise en circulation (DPMC)' },
+                { name: 'matricule', label: 'Registration Number' },
+                { name: 'genre', label: 'Category' },
+                { name: 'type', label: 'Vehicle Type' },
+                { name: 'construteur', label: 'Manufacturer' },
+                { name: 'serie', label: 'Type Serial Number' },
+                { name: 'typemoteur', label: 'Engine Type' },
+                { name: 'dpmc', label: 'Date of First Registration (DPMC)' },
             ],
         },
         {
-            sectionTitle: 'Caractéristiques',
+            sectionTitle: 'Specifications',
             fields: [
-                { name: 'place', label: 'Nombre de places' },
-                { name: 'porte', label: 'Nombre de portes' },
-                { name: 'inscrit', label: "Date d'inscription" },
+                { name: 'place', label: 'Number of Seats' },
+                { name: 'porte', label: 'Number of Doors' },
+                { name: 'inscrit', label: 'Registration Date' },
             ],
         },
         {
-            sectionTitle: 'Propriétaire',
+            sectionTitle: 'Owner',
             fields: [
-                { name: 'nom', label: 'Nom et prénom' },
-                { name: 'adresse', label: 'Adresse' },
-                { name: 'cin', label: 'CIN' },
+                { name: 'nom', label: 'Full Name' },
+                { name: 'adresse', label: 'Address' },
+                { name: 'cin', label: 'National ID (CIN)' },
             ],
         },
         {
             sectionTitle: 'Commercial',
-            fields: [{ name: 'commercial', label: 'Type commercial' }],
+            fields: [{ name: 'commercial', label: 'Commercial Type' }],
         },
     ]
 

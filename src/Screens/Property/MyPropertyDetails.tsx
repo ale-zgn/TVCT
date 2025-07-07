@@ -1,61 +1,229 @@
 import { useNavigation, useRoute } from '@react-navigation/native'
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import MapView from 'react-native-maps'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
 import { ArrowLeftIcon, RightArrowIcon } from '../../../assets/svgs/Svg'
 import { useTranslation } from '../../Services/hooks/useTranslation'
 
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
+import { BlurView } from 'expo-blur'
 import { Image } from 'expo-image'
+import moment from 'moment'
+import MaintButton from 'src/Components/Shared/MaintButton'
+import Title from 'src/Components/Shared/Title'
+import { useGetCarQuery } from 'src/Services/API'
+import useSocket from 'src/Services/hooks/useSocket'
+import { ReservationStatus } from 'src/Services/Interface'
 import { carsData } from '../Home/HomeScreen'
-
 export default function MyPropertyDetails() {
-    const [propertyFromWP, setPropertyFromWP] = useState<WPProperty | null>(null)
-
     const navigation = useNavigation()
     const { translate, language } = useTranslation()
     const mapRef = useRef<MapView>(null)
 
     const route = useRoute()
-    //const { property_id } = route.params as { property_id: number }
-    //const { data: property, isFetching: propretyIsFetching, refetch } = useGetUserPropertyQuery(property_id)
+    const { car_id } = route.params as { car_id: number }
+    const { data: car, isFetching, refetch } = useGetCarQuery(car_id)
+
+    useSocket({
+        onReactive: async (event) => {
+            console.log(event)
+
+            if (event.model === 'Reservation') {
+                refetch()
+            }
+        },
+    })
+    useEffect(() => {
+        refetch()
+    }, [])
     const property = carsData[0]
+    const vehicleSections = [
+        {
+            sectionTitle: 'Vehicle Information',
+            fields: [
+                { name: 'matricule', label: 'License Plate Number' },
+                { name: 'genre', label: 'Category' },
+                { name: 'type', label: 'Vehicle Type' },
+                { name: 'construteur', label: 'Manufacturer' },
+                { name: 'serie', label: 'Type Serial Number' },
+                { name: 'typemoteur', label: 'Engine Type' },
+                { name: 'dpmc', label: 'First Registration Date (DPMC)' },
+            ],
+        },
+        {
+            sectionTitle: 'Specifications',
+            fields: [
+                { name: 'place', label: 'Number of Seats' },
+                { name: 'porte', label: 'Number of Doors' },
+                { name: 'inscrit', label: 'Registration Date' },
+            ],
+        },
+        {
+            sectionTitle: 'Owner',
+            fields: [
+                { name: 'nom', label: 'Full Name' },
+                { name: 'adresse', label: 'Address' },
+                { name: 'cin', label: 'National ID (CIN)' },
+            ],
+        },
+        {
+            sectionTitle: 'Commercial',
+            fields: [{ name: 'commercial', label: 'Commercial Type' }],
+        },
+    ]
 
     return (
-        <ScrollView
-            style={styles.wrapper}
-            contentContainerStyle={{
-                alignItems: 'center',
+        <>
+            <ScrollView
+                style={styles.wrapper}
+                contentContainerStyle={{
+                    alignItems: 'center',
 
-                flex: 1,
-            }}>
-            <Pressable style={styles.backArrowContainer} onPress={() => navigation.goBack()}>
-                {language === 'en' ? <ArrowLeftIcon /> : <RightArrowIcon />}
-            </Pressable>
-
-            <Image
-                placeholder={{
-                    blurhash:
-                        '|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[',
+                    paddingBottom: hp('10%'),
                 }}
-                source={property.image}
-                style={{ width: '100%', height: hp('35%'), marginBottom: hp('2%') }}
-            />
-            <View style={{ justifyContent: 'space-between', flexDirection: 'row', alignItems: 'center', width: '100%', paddingHorizontal: wp('4%') }}>
-                <View>
-                    <Text style={styles.propertyName}>{property?.name}</Text>
-                    <View style={styles.propertyLocationWrapper}>
-                        <Text style={styles.propertyLocation}>{property.genre}</Text>
-                    </View>
-                    <View style={styles.propertyLocationWrapper}>
-                        <Text style={styles.propertyLocation}>{property.transmission}</Text>
-                    </View>
+                scrollEnabled>
+                <Pressable style={styles.backArrowContainer} onPress={() => navigation.goBack()}>
+                    {language === 'en' ? <ArrowLeftIcon /> : <RightArrowIcon />}
+                </Pressable>
+
+                <View style={{ width: '100%', height: hp('35%'), marginBottom: hp('2%') }}>
+                    <Image
+                        placeholder={{
+                            blurhash: '|rF?hV%2WCj[ayj[...etc',
+                        }}
+                        source={property.image}
+                        style={{ width: '100%', height: '100%' }}
+                    />
+
+                    <Pressable
+                        onPress={() => {}}
+                        style={{
+                            position: 'absolute',
+                            top: hp('5%'),
+                            right: wp('7.5%'),
+                            backgroundColor: 'rgba(255,255,255,0.9)',
+                            padding: 10,
+                            borderRadius: 30,
+                        }}>
+                        <MaterialCommunityIcons name='trash-can-outline' size={24} color='black' />
+                    </Pressable>
                 </View>
-                <View style={styles.statusWrapper}>
-                    <Text style={styles.status}>{property.activity}</Text>
-                </View>
-            </View>
-        </ScrollView>
+
+                {vehicleSections.map((section, index) => (
+                    <BlurView
+                        intensity={10}
+                        tint='dark'
+                        style={{
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            width: '90%',
+                            margin: hp('0.5%'),
+                            padding: hp('2%'),
+                            borderRadius: 16,
+                            overflow: 'hidden',
+                        }}>
+                        <View
+                            key={index}
+                            style={{
+                                width: '100%',
+                                marginVertical: hp('1%'),
+                            }}>
+                            <Text
+                                style={{
+                                    fontSize: wp('4%'),
+                                    fontWeight: 'bold',
+                                    marginBottom: hp('1%'),
+                                    color: '#000',
+                                }}>
+                                {section.sectionTitle}
+                            </Text>
+
+                            {section.fields.map((field, fieldIndex) => (
+                                <View
+                                    key={fieldIndex}
+                                    style={{
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        marginBottom: hp('1%'),
+                                    }}>
+                                    <Text style={{ fontSize: wp('3.5%'), color: '#333' }}>{field.label}</Text>
+                                    <Text
+                                        style={{
+                                            fontSize: wp('3.25%'),
+                                            color: '#000',
+                                        }}>
+                                        {car?.[field.name] ?? '—'}
+                                    </Text>
+                                </View>
+                            ))}
+                        </View>
+                    </BlurView>
+                ))}
+
+                <Title value={translate('My visits')} />
+
+                {car?.reservations?.length > 0 ? (
+                    car?.reservations.map((reservation, index) => (
+                        <BlurView
+                            key={reservation.id || index}
+                            intensity={10}
+                            tint='dark'
+                            style={{
+                                flexDirection: 'row',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                width: '90%',
+                                marginVertical: hp('0.5%'),
+                                padding: hp('2%'),
+                                borderRadius: 16,
+                                overflow: 'hidden',
+                            }}>
+                            <View>
+                                <Text
+                                    style={{
+                                        fontSize: wp('4%'),
+                                        fontWeight: '500',
+                                        color: '#000',
+                                        marginBottom: hp('1%'),
+                                    }}>
+                                    {translate('Car Matricule')}: {car?.matricule}{' '}
+                                    {reservation.status === ReservationStatus.PENDING && <Text style={{ fontSize: wp('3.5%'), color: '#444' }}>(pending)</Text>}
+                                </Text>
+                                <Text style={{ fontSize: wp('3.5%'), color: '#444' }}>
+                                    {translate('Visit at')} {reservation.center.name} - {moment(reservation.date).locale('en').format('DD MMM YYYY HH:mm')}
+                                </Text>
+                            </View>
+                        </BlurView>
+                    ))
+                ) : (
+                    <Text style={{ fontSize: wp('3.8%'), color: '#444' }}>{translate('You have no reservations')}</Text>
+                )}
+            </ScrollView>
+            {(car?.reservations.length === 0 || !car?.reservations) && (
+                <MaintButton
+                    title={translate('Create a visit')}
+                    backgroundColor='black'
+                    textColor='white'
+                    textFontFamily='semiBold'
+                    textFontSize={wp('5%')}
+                    style={{
+                        borderWidth: 0,
+
+                        borderColor: '#452C21',
+                        height: hp('8%'),
+                        marginBottom: hp('5%'),
+                    }}
+                    defaultMargin={hp('0.25%')}
+                    action={() => {
+                        //@ts-ignore
+                        navigation.navigate('NewVisitScreen', { car_id: car_id })
+                    }}
+                />
+            )}
+        </>
     )
 }
 
@@ -76,6 +244,10 @@ const styles = StyleSheet.create({
         borderRadius: 50,
         alignItems: 'center',
         justifyContent: 'center',
+    },
+    flatList: {
+        paddingHorizontal: wp('5%'),
+        paddingVertical: hp('2%'),
     },
 
     propertyName: {

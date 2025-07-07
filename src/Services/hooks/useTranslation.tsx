@@ -647,7 +647,7 @@ interface TranslationProviderProps {
 }
 
 const TranslationProvider = ({ children }: TranslationProviderProps) => {
-    const [language, setLanguage] = useState('ar')
+    const [language, setLanguage] = useState('en')
 
     const translate = (key: string, params?: Record<string, any>) => {
         let translation = language === 'ar' ? translations[language][key] || key : key
@@ -693,7 +693,7 @@ const TranslationProvider = ({ children }: TranslationProviderProps) => {
             if (language) {
                 setLanguage(language)
             } else {
-                setLanguage('ar')
+                setLanguage('en')
             }
         })
     }, [])

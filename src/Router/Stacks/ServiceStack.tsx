@@ -24,7 +24,7 @@ export default function ServiceStackScreen() {
     const { translate } = useTranslation()
 
     // useLayoutEffect(() => {
-    //     const tabHiddenRoutes = ['CreateAccount','AppointmentsSurvey','LoginLastSteps','TutorialPage','VerifyNumber','RewardsDetails','Rewards','Contact','FAQ','ReferAFriend','Warranty','PaymentDetails','PaymentScreen','AppointmentsNew','AppointmentsDetails','Appointments','ReportAProblem','CancelTicket','SearchPropertyDetails','SearchFilter','PropertyDetails','Options','TicketDetails','RaiseATicket', 'SearchPropertyDetails', 'SearchFilter', 'DocumentsRead', 'MyPropertiesDetails'];
+    //     const tabHiddenRoutes = ['CreateAccount','AppointmentsSurvey','LoginLastSteps','TutorialPage','VerifyNumber','RewardsDetails','Rewards','Contact','FAQ','ReferAFriend','Warranty','PaymentDetails','PaymentScreen','AppointmentsNew','AppointmentsDetails','Appointments','ReportAProblem','CancelTicket','SearchPropertyDetails','SearchFilter','PropertyDetails','Options','TicketDetails','RaiseATicket', 'SearchPropertyDetails', 'SearchFilter', 'DocumentsRead', 'MyCarDetails'];
 
     //     if(tabHiddenRoutes.includes(getFocusedRouteNameFromRoute(route)!)){
 
