@@ -5,7 +5,7 @@ import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-nat
 import { useNavigation } from '@react-navigation/native'
 import * as SecureStore from 'expo-secure-store'
 import { ALERT_TYPE, Toast } from 'react-native-alert-notification'
-import { ArrowLeftIcon, BoldRightArrowIcon, HearthIcon, LockIcon, LogoutIcon, PersonIcon } from '../../../assets/svgs/Svg'
+import { ArrowLeftIcon, BoldRightArrowIcon, LockIcon, LogoutIcon, PersonIcon } from '../../../assets/svgs/Svg'
 import { S3Image } from '../../Components/Shared/S3Image'
 import { API, useGetUserQuery } from '../../Services/API'
 import { useTranslation } from '../../Services/hooks/useTranslation'
@@ -25,11 +25,11 @@ export default function ProfileModal() {
         //     icon: <LockIcon />,
         //     action: "ChangePasswordModal",
         // },
-        {
+        /*     {
             name: 'Language',
             icon: <HearthIcon />,
             action: 'LanguageModal',
-        },
+        }, */
         // {
         //     name: "Alert notifications",
         //     icon: <AlertIcon />,

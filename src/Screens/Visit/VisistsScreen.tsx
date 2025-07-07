@@ -132,7 +132,7 @@ export default function VisitsScreen() {
                             justifyContent: 'center',
                             flex: 1,
                         }}>
-                        <Text style={{ fontSize: wp('4.5%'), fontFamily: 'regular' }}>{translate('No properties found')}</Text>
+                        <Text style={{ fontSize: wp('4.5%'), fontFamily: 'regular' }}>{translate('No visits found')}</Text>
                     </View>
                 )}
             />

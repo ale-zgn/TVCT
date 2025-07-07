@@ -1,13 +1,10 @@
 import { useNavigation } from '@react-navigation/native'
 import React, { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
 import { useGetUserQuery } from 'src/Services/API'
-import { PhotoIcon } from '../../../assets/svgs/Svg'
-import MaintButton from '../../Components/Shared/MaintButton'
-import { S3Image } from '../../Components/Shared/S3Image'
 import useImagePicker from '../../Components/Shared/usePhoto'
 import useSocket from '../../Services/hooks/useSocket'
 import { useTranslation } from '../../Services/hooks/useTranslation'
@@ -130,7 +127,7 @@ export default function PersonalInformationModal() {
                 flexGrow: 1,
             }}>
             <View style={styles.wrapper}>
-                <Pressable style={styles.titleContainer} onPress={showImagePickerActionSheet}>
+                {/* <Pressable style={styles.titleContainer} onPress={showImagePickerActionSheet}>
                     <Text style={styles.title}>{translate('Change my profile photo')}</Text>
                     <View>
                         <S3Image file={user?.image} folder={'users/images'} customStyle={styles.image} />
@@ -138,7 +135,7 @@ export default function PersonalInformationModal() {
                             <PhotoIcon />
                         </View>
                     </View>
-                </Pressable>
+                </Pressable> */}
 
                 {/* <PersonalInformationItem
                     title={translate("First name")}
@@ -166,36 +163,37 @@ export default function PersonalInformationModal() {
                     errors={errors}
                     placeholder="Enter your lastname"
                 /> */}
-                <TouchableOpacity style={styles.textContainer} onPress={() => setIsEditingFirstName(true)}>
+                <Pressable style={styles.textContainer} onPress={() => setIsEditingFirstName(true)}>
                     <Text style={styles.inputTitle}>{translate('Full name')}</Text>
-                    {isEditingFirstName ? (
+                    {/*   {isEditingFirstName ? (
                         <TextInput style={styles.inputTitle} value={firstName} onChangeText={setFirstName} onEndEditing={saveFirstName} autoFocus />
-                    ) : (
-                        <Text style={styles.value}>{firstName}</Text>
-                    )}
-                </TouchableOpacity>
+                    ) : ( */}
+                    <Text style={styles.value}>{firstName}</Text>
+                </Pressable>
 
-                <TouchableOpacity
+                <Pressable
                     style={styles.textContainer}
-                    onPress={() => {
+                    /*   onPress={() => {
                         //@ts-ignore
                         navigation.navigate('UpdatePersonalInfo', { formType: 'phone' })
-                    }}>
+                    }} */
+                >
                     <Text style={styles.inputTitle}>{translate('Phone number')}</Text>
                     <Text style={styles.value}>{user?.phone} </Text>
-                </TouchableOpacity>
+                </Pressable>
 
-                <TouchableOpacity
+                <Pressable
                     style={styles.textContainer}
-                    onPress={() => {
+                    /*   onPress={() => {
                         //@ts-ignore
                         navigation.navigate('UpdatePersonalInfo', { formType: 'email' })
-                    }}>
+                    }} */
+                >
                     <Text style={styles.inputTitle}>{translate('Email')}</Text>
                     <Text style={styles.value}>{user?.email} </Text>
-                </TouchableOpacity>
+                </Pressable>
 
-                <View style={styles.buttonContainer}>
+                {/*   <View style={styles.buttonContainer}>
                     <MaintButton
                         title='Update Personal Information'
                         action={handleSubmit(onSubmit)}
@@ -203,7 +201,7 @@ export default function PersonalInformationModal() {
                         textColor='white'
                         //hasActivityIndicator={updateUserMutation.isLoading ? true : false}
                     />
-                </View>
+                </View> */}
             </View>
         </KeyboardAwareScrollView>
     )

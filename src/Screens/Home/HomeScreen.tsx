@@ -1,7 +1,7 @@
 import { useNavigation } from '@react-navigation/native'
 import moment from 'moment'
-import React, { ComponentType, JSX, useEffect } from 'react'
-import { Dimensions, FlatList, Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native'
+import React, { ComponentType, JSX, useEffect, useState } from 'react'
+import { ActivityIndicator, Dimensions, FlatList, Modal, Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native'
 import { ALERT_TYPE, Toast } from 'react-native-alert-notification'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
 import {
@@ -36,9 +36,11 @@ import { decodeToken } from 'react-jwt'
 
 import * as SecureStore from 'expo-secure-store'
 
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
+import DateTimePicker from '@react-native-community/datetimepicker'
 import { BlurView } from 'expo-blur'
-import { API, useGetCarsQuery, useGetReservationsQuery } from 'src/Services/API'
-import { Car, ReservationStatus } from 'src/Services/Interface'
+import { API, useGetCarsQuery, useGetReservationsQuery, useLazyGetCenterAvailibilityQuery, useUpdateReservationMutation } from 'src/Services/API'
+import { Car, Reservation, ReservationStatus } from 'src/Services/Interface'
 import { store } from '../../Store/store'
 
 interface ServiceInterface {
@@ -83,51 +85,13 @@ const DriveInformations: {
     },
 ]
 
-export const carsData: {
-    name: string
-    genre: string
-    activity: string
-    image: string
-    fuelType: string
-    transmission: string
-    seatingCapacity: number
-    pricePerDay: number
-    features: string[]
-}[] = [
-    {
-        name: 'Toyota RAV4',
-        genre: 'SUV',
-        activity: 'Family trips, off-road adventures',
-        image: require('../../../assets/images/exampleCar.jpg'),
-        fuelType: 'Hybrid',
-        transmission: 'Automatic',
-        seatingCapacity: 5,
-        pricePerDay: 70,
-        features: ['All-Wheel Drive', 'Adaptive Cruise Control', 'Bluetooth'],
-    },
-    {
-        name: 'Honda Civic',
-        genre: 'Sedan',
-        activity: 'City driving, commuting',
-        image: require('../../../assets/images/exampleCar2.jpg'),
-        fuelType: 'Petrol',
-        transmission: 'Manual',
-        seatingCapacity: 5,
-        pricePerDay: 50,
-        features: ['Eco Mode', 'Lane Assist', 'Rear Camera'],
-    },
-    {
-        name: 'Jeep Wrangler',
-        genre: 'Off-Road',
-        activity: 'Adventure, rugged terrain',
-        image: require('../../../assets/images/exampleCar3.jpg'),
-        fuelType: 'Diesel',
-        transmission: 'Automatic',
-        seatingCapacity: 4,
-        pricePerDay: 90,
-        features: ['4x4 Drive', 'Removable Roof', 'Hill Descent Control'],
-    },
-]
+const getNextWeekday = (date) => {
+    const day = date.getDay()
+    const daysToAdd = day === 0 ? 1 : day === 6 ? 2 : 0 // Sunday = 0, Saturday = 6
+    const nextWeekday = new Date(date)
+    nextWeekday.setDate(date.getDate() + daysToAdd)
+    return nextWeekday
+}
 
 export default function HomeScreen() {
     const { translate, language: selectedLanguage } = useTranslation()
@@ -142,6 +106,16 @@ export default function HomeScreen() {
         width: Dimensions.get('window').width,
         height: Dimensions.get('window').width * 0.675,
     }
+
+    const [dateVisible, setDateVisible] = useState(false)
+    const [selectedVisit, setSelectedVisit] = useState<Reservation>()
+
+    const [updateReservation, updateReservationMutation] = useUpdateReservationMutation()
+    const [selectedDate, setSelectedDate] = useState(() => getNextWeekday(new Date()))
+    const [selectedTimeSlot, setSelectedTimeSlot] = useState(null)
+    const [showDatePicker, setShowDatePicker] = useState(false)
+    const [getAvailibility] = useLazyGetCenterAvailibilityQuery()
+    const [availibility, setAvailibility] = useState()
 
     const navigation = useNavigation()
     //console.log(surveys)
@@ -179,7 +153,64 @@ export default function HomeScreen() {
         })
     }, [])
 
-    console.log(visits)
+    const onDateChange = (event, date) => {
+        if (event.type === 'set' && date) {
+            const dayOfWeek = date.getDay()
+
+            // Check if selected date is weekend (Saturday = 6, Sunday = 0)
+            if (dayOfWeek === 0 || dayOfWeek === 6) {
+                // Get next weekday
+                const nextWeekday = getNextWeekday(date)
+                setSelectedDate(nextWeekday)
+            } else {
+                setSelectedDate(date)
+            }
+        }
+        setShowDatePicker(false)
+    }
+
+    useEffect(() => {
+        if (!selectedVisit) return
+
+        getAvailibility({ id: selectedVisit.center_id, date: moment(selectedDate).locale('en').format('YYYY-MM-DD') })
+            .unwrap()
+            .then((data) => {
+                setAvailibility(data)
+            })
+            .catch((error) => {
+                console.error('Failed to fetch car:', error)
+            })
+    }, [selectedVisit, selectedDate])
+
+    const handleTimeSlotSelect = (slot) => {
+        setSelectedTimeSlot(slot.hour)
+    }
+
+    const handleConfirm = async () => {
+        if (!selectedVisit) return
+        try {
+            await updateReservation({
+                car_id: selectedVisit?.car_id,
+                id: selectedVisit?.id,
+                date: `${selectedDate.toISOString().split('T')[0]}T${selectedTimeSlot}:00`,
+            }).then((res) => {
+                if (!res.error) {
+                    setDateVisible(false)
+
+                    Toast.show({
+                        type: ALERT_TYPE.SUCCESS,
+                        title: translate('Reservation updated successfully'),
+                    })
+                }
+            })
+        } catch (error: any) {
+            console.error(error)
+            Toast.show({
+                type: ALERT_TYPE.DANGER,
+                title: translate('Failed to update reservation'),
+            })
+        }
+    }
 
     return (
         <View style={styles.wrapper}>
@@ -306,6 +337,13 @@ export default function HomeScreen() {
                                         Visit at {item.center.name} - {moment(item.date).locale('en').format('DD MMM YYYY HH:mm')}
                                     </Text>
                                 </View>
+                                <Pressable
+                                    onPress={() => {
+                                        setDateVisible(true)
+                                        setSelectedVisit(item)
+                                    }}>
+                                    <MaterialCommunityIcons name='pencil-outline' size={24} color='black' />
+                                </Pressable>
                             </BlurView>
                         )}
                         keyExtractor={(item, index) => index.toString()}
@@ -370,6 +408,169 @@ export default function HomeScreen() {
                     />
                 </ScrollView>
             </SafeAreaView>
+
+            <Modal
+                animationType='slide'
+                transparent={true}
+                visible={dateVisible}
+                onRequestClose={() => {
+                    setDateVisible(false)
+                }}>
+                <Pressable onPress={() => setDateVisible(false)} style={styles.modalView}>
+                    <View
+                        onStartShouldSetResponder={() => true}
+                        style={{
+                            height: hp('60%'),
+                            backgroundColor: 'white',
+                            width: '100%',
+                            position: 'absolute',
+                            bottom: 0,
+                            borderTopLeftRadius: 20,
+                            borderTopRightRadius: 20,
+                            padding: 20,
+                            paddingBottom: 0,
+                            zIndex: 10,
+                        }}>
+                        {/* Header */}
+                        <Text
+                            style={{
+                                fontSize: 20,
+                                fontWeight: 'bold',
+                                textAlign: 'center',
+                                marginBottom: 20,
+                                color: '#333',
+                            }}>
+                            Select Date & Time
+                        </Text>
+
+                        {/* Date Selection */}
+                        <View style={{ marginBottom: 20 }}>
+                            <Text
+                                style={{
+                                    fontSize: 16,
+                                    fontWeight: '600',
+                                    marginBottom: 10,
+                                    color: '#333',
+                                }}>
+                                Select Date
+                            </Text>
+                            <Pressable
+                                style={{
+                                    backgroundColor: '#f0f0f0',
+                                    padding: 15,
+                                    borderRadius: 10,
+                                    alignItems: 'center',
+                                }}
+                                onPress={() => {
+                                    setShowDatePicker(true)
+                                }}>
+                                <Text style={{ fontSize: 16, color: '#333' }}>{selectedDate.toDateString()}</Text>
+                            </Pressable>
+                        </View>
+
+                        {showDatePicker && (
+                            <DateTimePicker value={selectedDate} mode='date' display='default' onChange={onDateChange} minimumDate={new Date()} />
+                        )}
+
+                        {/* Time Slots */}
+                        <View style={{ flex: 1 }}>
+                            <Text
+                                style={{
+                                    fontSize: 16,
+                                    fontWeight: '600',
+                                    marginTop: hp('2%'),
+                                    marginBottom: 10,
+                                    color: '#333',
+                                }}>
+                                Available Time Slots
+                            </Text>
+                            <ScrollView style={{ maxHeight: hp('27%') }} showsVerticalScrollIndicator={false}>
+                                <View
+                                    style={{
+                                        flexDirection: 'row',
+                                        flexWrap: 'wrap',
+                                        justifyContent: 'space-between',
+                                    }}>
+                                    {availibility?.map((slot) => (
+                                        <Pressable
+                                            key={`${slot.date}-${slot.hour}`}
+                                            style={[
+                                                {
+                                                    width: '48%',
+                                                    backgroundColor: selectedTimeSlot === slot.hour ? '#85553A' : '#fff',
+                                                    padding: 12,
+                                                    borderRadius: 8,
+                                                    marginBottom: 10,
+                                                    alignItems: 'center',
+                                                    borderWidth: 1,
+                                                    borderColor: selectedTimeSlot === slot.hour ? '#85553A' : '#e0e0e0',
+                                                },
+                                            ]}
+                                            onPress={() => handleTimeSlotSelect(slot)}>
+                                            <Text
+                                                style={{
+                                                    fontSize: 14,
+                                                    color: selectedTimeSlot === slot.hour ? 'white' : '#333',
+                                                    fontWeight: selectedTimeSlot === slot.hour ? '600' : 'normal',
+                                                }}>
+                                                {slot.hour}
+                                            </Text>
+                                        </Pressable>
+                                    ))}
+                                </View>
+                            </ScrollView>
+                        </View>
+
+                        {/* Action Buttons */}
+                        <View
+                            style={{
+                                flexDirection: 'row',
+                                justifyContent: 'space-between',
+                                paddingBottom: hp('2%'),
+                            }}>
+                            <Pressable
+                                style={{
+                                    flex: 1,
+                                    backgroundColor: '#f0f0f0',
+                                    padding: 15,
+                                    borderRadius: 10,
+                                    marginRight: 10,
+                                    alignItems: 'center',
+                                }}
+                                onPress={() => {
+                                    setDateVisible(false)
+                                }}>
+                                <Text style={{ fontSize: 16, color: '#666' }}>Cancel</Text>
+                            </Pressable>
+
+                            <Pressable
+                                style={{
+                                    flex: 1,
+                                    backgroundColor: selectedTimeSlot ? 'black' : '#ccc',
+                                    padding: 15,
+                                    borderRadius: 10,
+                                    marginLeft: 10,
+                                    alignItems: 'center',
+                                }}
+                                onPress={handleConfirm}
+                                disabled={!selectedTimeSlot}>
+                                {updateReservationMutation.isLoading ? (
+                                    <ActivityIndicator />
+                                ) : (
+                                    <Text
+                                        style={{
+                                            fontSize: 16,
+                                            color: selectedTimeSlot ? 'white' : '#888',
+                                            fontWeight: '600',
+                                        }}>
+                                        Confirm
+                                    </Text>
+                                )}
+                            </Pressable>
+                        </View>
+                    </View>
+                </Pressable>
+            </Modal>
         </View>
     )
 }
@@ -472,6 +673,10 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         marginLeft: wp('7.5%'),
         width: wp('50%'),
+    },
+    modalView: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.2)',
     },
     insertRight: {
         width: wp('32.5%'),

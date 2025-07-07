@@ -103,6 +103,15 @@ export const API = createApi({
             transformResponse: (response: ResponseType) => response.data,
             providesTags: ['Center'],
         }),
+        deleteCenter: builder.mutation<any, number>({
+            query: (id) => ({
+                url: `/centers/${id}`,
+                method: 'PUT',
+                body: {},
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+            invalidatesTags: ['Center'],
+        }),
 
         getCenterAvailibility: builder.query<any, { id: number; date: string }>({
             query: ({ id, date }) => ({
@@ -120,6 +129,18 @@ export const API = createApi({
             }),
             transformResponse: (response: ResponseType) => response.data,
             invalidatesTags: ['Reservation', 'Center', 'Car'],
+        }),
+
+        updateReservation: builder.mutation<Reservation, { id: number; car_id: number; date: string }>({
+            query: ({ car_id, id, date }) => ({
+                url: `/users/me/cars/${car_id}/reservations/${id}`,
+                method: 'PUT',
+                body: {
+                    date: date,
+                },
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+            invalidatesTags: ['Reservation'],
         }),
         updateReservationStatus: builder.mutation<Reservation, { id: number; status: number }>({
             query: ({ id, status }) => ({
@@ -173,9 +194,10 @@ export const {
     useGetCentersQuery,
     useLazyGetCenterAvailibilityQuery,
     useCreateReservationMutation,
-
+    useDeleteCenterMutation,
     useUpdateReservationStatusMutation,
     useGetReservationsQuery,
     useGetAllReservationsQuery,
     useGetNotificationsQuery,
+    useUpdateReservationMutation,
 } = API
