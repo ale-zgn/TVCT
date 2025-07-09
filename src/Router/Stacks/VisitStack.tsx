@@ -1,11 +1,11 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import React, { useEffect, useState } from 'react'
 import DefaultHeaderLeft from 'src/Components/Header/DefaultHeaderLeft'
-import AddCarPage from 'src/Screens/Property/AddCarPage'
+import AddCarPage from 'src/Screens/Car/AddCarPage'
 import CreateVisitPage from 'src/Screens/Visit/CreateVisitPage'
 import VisitsScreen from 'src/Screens/Visit/VisistsScreen'
 import { useGetUserQuery } from 'src/Services/API'
-import MyPropertyDetails from '../../Screens/Property/MyPropertyDetails'
+import MyPropertyDetails from '../../Screens/Car/CarDetails'
 import { headerTitleStyle } from '../../Screens/Service/HeaderTitleStyle'
 import { useTranslation } from '../../Services/hooks/useTranslation'
 

@@ -1,19 +1,20 @@
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import { useNavigation } from '@react-navigation/native'
-import { LeftArrowIcon, RightArrowIcon } from 'assets/svgs/Svg'
 import { BlurView } from 'expo-blur'
 import moment from 'moment'
 import React, { useMemo, useState } from 'react'
-import { FlatList, StyleSheet, Text, TextInput, View } from 'react-native'
+import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
 import MaintButton from 'src/Components/Shared/MaintButton'
 import Title from 'src/Components/Shared/Title'
-import { useGetCentersQuery } from 'src/Services/API'
+import { useDeleteCenterMutation, useGetCentersQuery } from 'src/Services/API'
 import { useTranslation } from 'src/Services/hooks/useTranslation'
 
 export default function CentersScreen() {
     const { translate, language: selectedLanguage } = useTranslation()
     const [searchText, setSearchText] = useState('')
     const { data: centers } = useGetCentersQuery()
+    const [deleteCenter, deleteCenterMutation] = useDeleteCenterMutation()
 
     const filteredCenters = useMemo(() => {
         if (!searchText.trim()) return centers
@@ -54,13 +55,34 @@ export default function CentersScreen() {
                                     {translate('Visits')}: {item.reservations.length}
                                 </Text>
                             </View>
-                            {selectedLanguage === 'en' ? <RightArrowIcon color='#000' /> : <LeftArrowIcon color='#000' />}
+                            <Pressable
+                                onPress={() => {
+                                    Alert.alert('Confirm Deletion', 'Are you sure you want to delete this center?', [
+                                        {
+                                            text: 'Cancel',
+                                            style: 'cancel',
+                                        },
+                                        {
+                                            text: 'Delete',
+                                            style: 'destructive',
+                                            onPress: async () => {
+                                                await deleteCenter(item.id)
+                                            },
+                                        },
+                                    ])
+                                }}>
+                                {deleteCenterMutation.isLoading ? (
+                                    <ActivityIndicator />
+                                ) : (
+                                    <MaterialCommunityIcons name='trash-can-outline' size={24} color='black' />
+                                )}
+                            </Pressable>
                         </BlurView>
                     </View>
                 )}
                 ListEmptyComponent={() => (
                     <View style={styles.emptyContainer}>
-                        <Text style={styles.emptyText}>{translate('No properties found')}</Text>
+                        <Text style={styles.emptyText}>{translate('No centers found')}</Text>
                     </View>
                 )}
                 ListFooterComponentStyle={{ marginTop: hp('5%') }}

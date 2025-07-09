@@ -32,7 +32,7 @@ export default function MyPropertiesScreen() {
                     ItemSeparatorComponent={() => <View style={styles.separator} />}
                     ListEmptyComponent={() => (
                         <View style={{ alignItems: 'center', height: hp('50%'), justifyContent: 'center', flex: 1 }}>
-                            <Text style={{ fontFamily: 'medium', fontSize: wp('5%'), color: '#000' }}>{translate('No properties found')}</Text>
+                            <Text style={{ fontFamily: 'medium', fontSize: wp('5%'), color: '#000' }}>{translate('No cars found')}</Text>
                         </View>
                     )}
                 />

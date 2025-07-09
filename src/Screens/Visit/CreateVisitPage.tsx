@@ -267,6 +267,21 @@ export default function CreateVisitPage() {
         loadCar()
     }, [car_id])
 
+    useEffect(() => {
+        if (!selectedCar) return
+
+        const loadCar = async () => {
+            try {
+                const data = await getCar(selectedCar).unwrap()
+                setCar(data)
+            } catch (error) {
+                console.error('Failed to fetch car:', error)
+            }
+        }
+
+        loadCar()
+    }, [selectedCar])
+
     const {
         control,
         handleSubmit,
@@ -277,24 +292,22 @@ export default function CreateVisitPage() {
 
     useEffect(() => {
         if (car) {
-            if (car) {
-                reset({
-                    matricule: car.matricule,
-                    adresse: car.adresse,
-                    genre: car.genre,
-                    nom: car.nom,
-                    inscrit: car.inscrit,
-                    place: car.place,
-                    porte: car.porte,
-                    typemoteur: car.typemoteur,
-                    cin: car.cin,
-                    commercial: car.commercial,
-                    construteur: car.construteur,
-                    dpmc: car.dpmc,
-                    serie: car.serie,
-                    type: car.type,
-                })
-            }
+            reset({
+                matricule: car.matricule,
+                adresse: car.adresse,
+                genre: car.genre,
+                nom: car.nom,
+                inscrit: car.inscrit,
+                place: car.place,
+                porte: car.porte,
+                typemoteur: car.typemoteur,
+                cin: car.cin,
+                commercial: car.commercial,
+                construteur: car.construteur,
+                dpmc: car.dpmc,
+                serie: car.serie,
+                type: car.type,
+            })
         }
     }, [car])
 
@@ -836,7 +849,11 @@ export default function CreateVisitPage() {
                     onRequestClose={() => {
                         setDateVisible(false), setModalVisible(true)
                     }}>
-                    <Pressable onPress={() => setPaymentVisible(false)} style={styles.modalView}>
+                    <Pressable
+                        onPress={() => {
+                            setDateVisible(false), setModalVisible(true)
+                        }}
+                        style={styles.modalView}>
                         <View
                             onStartShouldSetResponder={() => true}
                             style={{

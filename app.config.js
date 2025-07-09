@@ -5,7 +5,7 @@ module.exports = ({ config }) => {
             slug: 'TVCT',
             version: '1.0.0',
             orientation: 'portrait',
-            owner: 'wissal',
+            owner: 'alee.zgn',
             icon: './assets/splash-icon.png',
             scheme: 'carvisit',
             privacy: 'unlisted',
@@ -18,8 +18,9 @@ module.exports = ({ config }) => {
                     backgroundColor: '#ffffff',
                 },
                 edgeToEdgeEnabled: true,
+                gradleCommand: ':app:assembleRelease',
 
-                package: 'com.alee.carvisit',
+                package: 'com.wissal.carvisit',
             },
             ios: {
                 buildNumber: '1',
@@ -40,7 +41,27 @@ module.exports = ({ config }) => {
                         backgroundColor: '#ffffff',
                     },
                 ],
+                [
+                    'expo-build-properties',
+                    {
+                        android: {
+                            compileSdkVersion: 35, // ✅ upgrade to 35
+                            targetSdkVersion: 35, // ✅ upgrade to 35
+                            buildToolsVersion: '35.0.0', // optional if it exists
+                            gradleCommand: ':app:bundleRelease',
+                            enableProguardInReleaseBuilds: false,
+                            extraProguardRules: '',
+                        },
+                        ios: {
+                            deploymentTarget: '15.1',
+                        },
+                    },
+                ],
             ],
+
+            runtimeVersion: {
+                policy: 'sdkVersion',
+            },
             extra: {
                 eas: {
                     projectId: '724b4f2f-72ec-46b2-a4e0-8801b42689a0',
