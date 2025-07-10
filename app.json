@@ -4,7 +4,7 @@
         "slug": "TVCT",
         "version": "1.0.0",
         "orientation": "portrait",
-        "icon": "'./assets/splash-icon.png'",
+        "icon": "./assets/splash-icon.png",
         "scheme": "carvisit",
         "userInterfaceStyle": "automatic",
         "newArchEnabled": true,
@@ -16,7 +16,16 @@
                 "foregroundImage": "./assets/splash-icon.png",
                 "backgroundColor": "#ffffff"
             },
-            "edgeToEdgeEnabled": true
+            "edgeToEdgeEnabled": true,
+            "config": {
+                "googleMaps": {
+                    "apiKey": "AIzaSyCUCZUVHnqaQk5JXbhj69Lpz1Q7rZged_o"
+                }
+            },
+            "package": "com.alee.zgn.TVCT"
+        },
+        "runtimeVersion": {
+            "policy": "sdkVersion"
         },
         "web": {
             "bundler": "metro",
@@ -30,6 +39,58 @@
                     "imageWidth": 200,
                     "resizeMode": "contain",
                     "backgroundColor": "#ffffff"
+                }
+            ],
+            [
+                "expo-build-properties",
+                {
+                    "android": {
+                        "compileSdkVersion": 35,
+                        "targetSdkVersion": 35,
+                        "buildToolsVersion": "35.0.0",
+                        "gradleCommand": ":app:bundleRelease",
+                        "enableProguardInReleaseBuilds": false,
+                        "extraProguardRules": ""
+                    },
+                    "ios": {
+                        "deploymentTarget": "15.1"
+                    }
+                }
+            ],
+            [
+                "expo-av",
+                {
+                    "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
+                }
+            ],
+            [
+                "@stripe/stripe-react-native",
+                {
+                    "merchantIdentifier": "",
+                    "enableGooglePay": false
+                }
+            ],
+            [
+                "expo-image-picker",
+                {
+                    "photosPermission": "Allow TVCT to accesses to your photos for let you change your profile picture and upload ticket photo.",
+                    "cameraPermission": "Allow TVCT to access your camera  for let you change your profile picture and upload ticket photo.",
+                    "microphonePermission": "Allow TVCT to access your microphone for send vocal message."
+                }
+            ],
+            ["react-native-appsflyer", {}],
+            [
+                "expo-dev-launcher",
+                {
+                    "launchMode": "launcher",
+                    "addGeneratedScheme": false
+                }
+            ],
+            ["expo-font", {}],
+            [
+                "expo-web-browser",
+                {
+                    "experimentalLauncherActivity": true
                 }
             ]
         ],

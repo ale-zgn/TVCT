@@ -2,7 +2,7 @@ import * as FileSystem from 'expo-file-system'
 import * as ImagePicker from 'expo-image-picker'
 import { useState } from 'react'
 import { Alert } from 'react-native'
-const API_BASE_URL = 'http://192.168.1.27:5000/api'
+const API_BASE_URL = 'http://192.168.1.19:5000/api'
 
 const useOcrImagePicker = () => {
     const [firstImage, setFirstImage] = useState(null)
@@ -110,6 +110,7 @@ const useOcrImagePicker = () => {
                 secondImage: `data:image/jpeg;base64,${secondBase64}`,
             }),
         })
+        console.log('response', response)
 
         const data = await response.json()
 

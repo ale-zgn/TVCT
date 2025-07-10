@@ -66,80 +66,80 @@ const conditionalFields = {
     TU: [
         { name: 'mat', label: 'Serial Number' },
         { name: 'conf_mat', label: 'Confirm Serial Number' },
-        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+        { name: 'serie', label: 'Last 5 characters of chassis number' },
     ],
     RS: [
-        { name: 'rs', label: 'RS' },
-        { name: 'conf_rs', label: 'Confirm RS' },
-        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+        { name: 'mat', label: 'RS' },
+        { name: 'conf_mat', label: 'Confirm RS' },
+        { name: 'serie', label: 'Last 5 characters of chassis number' },
     ],
     MOTO: [
-        { name: 'moto', label: 'Motorcycle' },
-        { name: 'conf_moto', label: 'Confirm Motorcycle' },
-        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+        { name: 'mat', label: 'Motorcycle' },
+        { name: 'conf_mat', label: 'Confirm Motorcycle' },
+        { name: 'serie', label: 'Last 5 characters of chassis number' },
     ],
     TRAC: [
-        { name: 'trac', label: 'Tractor' },
-        { name: 'conf_trac', label: 'Confirm Tractor' },
-        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+        { name: 'mat', label: 'Tractor' },
+        { name: 'conf_mat', label: 'Confirm Tractor' },
+        { name: 'serie', label: 'Last 5 characters of chassis number' },
     ],
     PAT: [
-        { name: 'pat', label: 'PAT (م أ ف)' },
-        { name: 'conf_pat', label: 'Confirm PAT (م أ ف)' },
-        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+        { name: 'mat', label: 'PAT (م أ ف)' },
+        { name: 'conf_mat', label: 'Confirm PAT (م أ ف)' },
+        { name: 'serie', label: 'Last 5 characters of chassis number' },
     ],
     CMD: [
-        { name: 'cmd', label: 'CMD (ر ب د)' },
-        { name: 'conf_cmd', label: 'Confirm CMD (ر ب د)' },
-        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+        { name: 'mat', label: 'CMD (ر ب د)' },
+        { name: 'conf_mat', label: 'Confirm CMD (ر ب د)' },
+        { name: 'serie', label: 'Last 5 characters of chassis number' },
     ],
     CD: [
-        { name: 'cd', label: 'CD (س د)' },
-        { name: 'conf_cd', label: 'Confirm CD (س د)' },
-        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+        { name: 'mat', label: 'CD (س د)' },
+        { name: 'conf_mat', label: 'Confirm CD (س د)' },
+        { name: 'serie', label: 'Last 5 characters of chassis number' },
     ],
     MD: [
-        { name: 'md', label: 'MD (ب د)' },
-        { name: 'conf_md', label: 'Confirm MD (ب د)' },
-        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+        { name: 'mat', label: 'MD (ب د)' },
+        { name: 'conf_mat', label: 'Confirm MD (ب د)' },
+        { name: 'serie', label: 'Last 5 characters of chassis number' },
     ],
     MC: [
-        { name: 'mc', label: 'MC (ث ق)' },
-        { name: 'conf_mc', label: 'Confirm MC (ث ق)' },
-        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+        { name: 'mat', label: 'MC (ث ق)' },
+        { name: 'conf_mat', label: 'Confirm MC (ث ق)' },
+        { name: 'serie', label: 'Last 5 characters of chassis number' },
     ],
     CC: [
-        { name: 'cc', label: 'CC (س ق)' },
-        { name: 'conf_cc', label: 'Confirm CC (س ق)' },
-        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+        { name: 'mat', label: 'CC (س ق)' },
+        { name: 'conf_mat', label: 'Confirm CC (س ق)' },
+        { name: 'serie', label: 'Last 5 characters of chassis number' },
     ],
     REM: [
-        { name: 'rem', label: 'REM (ع م)' },
-        { name: 'conf_rem', label: 'Confirm REM (ع م)' },
-        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+        { name: 'mat', label: 'REM (ع م)' },
+        { name: 'conf_mat', label: 'Confirm REM (ع م)' },
+        { name: 'serie', label: 'Last 5 characters of chassis number' },
     ],
     AA: [
-        { name: 'aa', label: 'AA (أ ف)' },
-        { name: 'conf_aa', label: 'Confirm AA (أ ف)' },
-        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+        { name: 'mat', label: 'AA (أ ف)' },
+        { name: 'conf_mat', label: 'Confirm AA (أ ف)' },
+        { name: 'serie', label: 'Last 5 characters of chassis number' },
     ],
     ES: [
-        { name: 'es', label: 'ES (م خ)' },
-        { name: 'conf_es', label: 'Confirm ES (م خ)' },
-        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+        { name: 'mat', label: 'ES (م خ)' },
+        { name: 'conf_mat', label: 'Confirm ES (م خ)' },
+        { name: 'serie', label: 'Last 5 characters of chassis number' },
     ],
     PE: [
-        { name: 'pe', label: 'PE' },
-        { name: 'conf_pe', label: 'Confirm PE' },
-        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+        { name: 'mat', label: 'PE' },
+        { name: 'conf_mat', label: 'Confirm PE' },
+        { name: 'serie', label: 'Last 5 characters of chassis number' },
     ],
     IT: [
-        { name: 'it', label: 'IT (ت م)' },
-        { name: 'conf_it', label: 'Confirm IT (ت م)' },
-        { name: 'chassis', label: 'Last 5 characters of chassis number' },
+        { name: 'mat', label: 'IT (ت م)' },
+        { name: 'conf_mat', label: 'Confirm IT (ت م)' },
+        { name: 'serie', label: 'Last 5 characters of chassis number' },
     ],
     ETR: [
-        { name: 'chassis', label: 'Chassis Number' },
+        { name: 'mat', label: 'Chassis Number' },
         { name: 'conf_chassis', label: 'Confirm Chassis Number' },
     ],
 }
@@ -312,35 +312,59 @@ export default function CreateVisitPage() {
     }, [car])
 
     const applyOcrResult = (dataFromApi) => {
-        Object.entries(dataFromApi).forEach(([name, value]) => {
-            if (value !== undefined && value !== null) {
-                // Check if this field belongs to a prefix type
-                const isPrefixField = ['chassis'].includes(name)
-                const prefixType = ['TU', 'PE', 'PAT', 'CMD', 'CD', 'MD', 'MC', 'CC'].includes(pickerValue)
+        if (!dataFromApi || !pickerValue) return
 
-                // Check if this is a field that should be split for prefix types
-                const shouldSplitForPrefix = prefixType && !isPrefixField && conditionalFields[pickerValue]?.some((field) => field.name === name)
+        const fields = conditionalFields[pickerValue]
+        if (!fields || fields.length < 2) return
 
-                if (shouldSplitForPrefix) {
-                    // Split the value and apply to prefix/suffix fields
-                    const parts = splitSerialNumber(value)
-                    if (parts) {
-                        setValue(`${name}_prefix`, parts.firstPart, {
-                            shouldValidate: true,
+        const prefixType = ['TU', 'PE', 'PAT', 'CMD', 'CD', 'MD', 'MC', 'CC'].includes(pickerValue)
+
+        Object.entries(dataFromApi).forEach(([ocrField, value]) => {
+            if (value === undefined || value === null) return
+
+            const mappedName = ocrField
+            if (!mappedName) return
+
+            const isMatriculeField = ['matricule', 'mat'].includes(ocrField) && fields[0].name === 'mat' && fields[1].name === 'conf_mat'
+
+            if (isMatriculeField) {
+                setValue(`matricule`, value, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                })
+                const parts = splitSerialNumber(value)
+                console.log(parts)
+
+                if (parts) {
+                    const primary = isMatriculeField ? 'mat' : mappedName
+                    const confirm = isMatriculeField ? 'conf_mat' : fields.find((f) => f.name !== primary)?.name
+
+                    setValue(`${primary}_prefix`, parts.firstPart, {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                    })
+                    setValue(`${primary}_suffix`, parts.lastPart, {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                    })
+
+                    if (confirm) {
+                        setValue(`${confirm}_prefix`, parts.firstPart, {
                             shouldDirty: true,
+                            shouldValidate: true,
                         })
-                        setValue(`${name}_suffix`, parts.lastPart, {
-                            shouldValidate: true,
+                        setValue(`${confirm}_suffix`, parts.lastPart, {
                             shouldDirty: true,
+                            shouldValidate: true,
                         })
                     }
-                } else {
-                    // Apply normally for non-prefix fields
-                    setValue(name, value, {
-                        shouldValidate: true,
-                        shouldDirty: true,
-                    })
                 }
+            } else {
+                // Non-prefix or unrelated fields
+                setValue(mappedName, value, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                })
             }
         })
     }
@@ -362,7 +386,9 @@ export default function CreateVisitPage() {
     const handleScan = async () => {
         try {
             const ocrResult = await processImages()
-            applyOcrResult(ocrResult.data)
+            console.log('ocr', ocrResult)
+
+            applyOcrResult(ocrResult)
         } catch (e) {
             console.error(e)
             alert('Erreur lors du scan OCR.')
@@ -534,13 +560,20 @@ export default function CreateVisitPage() {
     }
 
     const splitSerialNumber = (fullValue: string) => {
-        const cleaned = fullValue.replace(/\s+/g, '') // remove all spaces
-        const match = cleaned.match(/^(\d{4})[A-Z]{2,}\d{4}$/i)
+        if (!fullValue) return null
+
+        // Remove extra whitespace, keep Arabic or Latin words in between
+        const cleaned = fullValue.trim().replace(/\s+/g, ' ')
+        console.log('cleaned', cleaned)
+
+        // Match common Tunisian plate formats: 4 digits, middle word, 3 digits
+        const match = cleaned.match(/^(\d{3,4})\s+[^\d]+\s+(\d{2,4})$/)
 
         if (!match) return null
 
-        const firstPart = cleaned.slice(0, 4)
-        const lastPart = cleaned.slice(-4)
+        const firstPart = match[1]
+        const lastPart = match[2]
+
         return { firstPart, lastPart }
     }
 
@@ -553,7 +586,7 @@ export default function CreateVisitPage() {
         const fields = conditionalFields[pickerValue]
         if (!fields || fields.length < 2) return
 
-        const isPrefixField = ['chassis'].includes(fields[0].name)
+        const isPrefixField = ['serie'].includes(fields[0].name)
         const prefixType = ['TU', 'PE', 'PAT', 'CMD', 'CD', 'MD', 'MC', 'CC'].includes(pickerValue)
 
         // Check if this is a prefix type field (not chassis)
@@ -701,7 +734,7 @@ export default function CreateVisitPage() {
                                     <Text style={styles.sectionTitle}>{translate('Specific information')}</Text>
 
                                     {conditionalFields[pickerValue].map((field) => {
-                                        const isPrefixField = ['chassis'].includes(field.name)
+                                        const isPrefixField = ['serie'].includes(field.name)
                                         const prefixType = ['TU', 'PE', 'PAT', 'CMD', 'CD', 'MD', 'MC', 'CC'].includes(pickerValue)
 
                                         if (prefixType && !isPrefixField) {
