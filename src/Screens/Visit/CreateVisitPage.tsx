@@ -18,6 +18,8 @@ import {
     useGetUserQuery,
     useLazyGetCarQuery,
     useLazyGetCenterAvailibilityQuery,
+    useLazyGetReservationQuery,
+    useUpdateReservationPaymentStatusMutation,
 } from 'src/Services/API'
 import { Car } from 'src/Services/Interface'
 import { ArrowDownIcon, PlusIcon } from '../../../assets/svgs/Svg'
@@ -66,77 +68,77 @@ const conditionalFields = {
     TU: [
         { name: 'mat', label: 'Serial Number' },
         { name: 'conf_mat', label: 'Confirm Serial Number' },
-        { name: 'serie', label: 'Last 5 characters of chassis number' },
+        { name: 'serie', label: 'Chassis number' },
     ],
     RS: [
         { name: 'mat', label: 'RS' },
         { name: 'conf_mat', label: 'Confirm RS' },
-        { name: 'serie', label: 'Last 5 characters of chassis number' },
+        { name: 'serie', label: 'Chassis number' },
     ],
     MOTO: [
         { name: 'mat', label: 'Motorcycle' },
         { name: 'conf_mat', label: 'Confirm Motorcycle' },
-        { name: 'serie', label: 'Last 5 characters of chassis number' },
+        { name: 'serie', label: 'Chassis number' },
     ],
     TRAC: [
         { name: 'mat', label: 'Tractor' },
         { name: 'conf_mat', label: 'Confirm Tractor' },
-        { name: 'serie', label: 'Last 5 characters of chassis number' },
+        { name: 'serie', label: 'Chassis number' },
     ],
     PAT: [
         { name: 'mat', label: 'PAT (م أ ف)' },
         { name: 'conf_mat', label: 'Confirm PAT (م أ ف)' },
-        { name: 'serie', label: 'Last 5 characters of chassis number' },
+        { name: 'serie', label: 'Chassis number' },
     ],
     CMD: [
         { name: 'mat', label: 'CMD (ر ب د)' },
         { name: 'conf_mat', label: 'Confirm CMD (ر ب د)' },
-        { name: 'serie', label: 'Last 5 characters of chassis number' },
+        { name: 'serie', label: 'Chassis number' },
     ],
     CD: [
         { name: 'mat', label: 'CD (س د)' },
         { name: 'conf_mat', label: 'Confirm CD (س د)' },
-        { name: 'serie', label: 'Last 5 characters of chassis number' },
+        { name: 'serie', label: 'Chassis number' },
     ],
     MD: [
         { name: 'mat', label: 'MD (ب د)' },
         { name: 'conf_mat', label: 'Confirm MD (ب د)' },
-        { name: 'serie', label: 'Last 5 characters of chassis number' },
+        { name: 'serie', label: 'Chassis number' },
     ],
     MC: [
         { name: 'mat', label: 'MC (ث ق)' },
         { name: 'conf_mat', label: 'Confirm MC (ث ق)' },
-        { name: 'serie', label: 'Last 5 characters of chassis number' },
+        { name: 'serie', label: 'Chassis number' },
     ],
     CC: [
         { name: 'mat', label: 'CC (س ق)' },
         { name: 'conf_mat', label: 'Confirm CC (س ق)' },
-        { name: 'serie', label: 'Last 5 characters of chassis number' },
+        { name: 'serie', label: 'Chassis number' },
     ],
     REM: [
         { name: 'mat', label: 'REM (ع م)' },
         { name: 'conf_mat', label: 'Confirm REM (ع م)' },
-        { name: 'serie', label: 'Last 5 characters of chassis number' },
+        { name: 'serie', label: 'Chassis number' },
     ],
     AA: [
         { name: 'mat', label: 'AA (أ ف)' },
         { name: 'conf_mat', label: 'Confirm AA (أ ف)' },
-        { name: 'serie', label: 'Last 5 characters of chassis number' },
+        { name: 'serie', label: 'Chassis number' },
     ],
     ES: [
         { name: 'mat', label: 'ES (م خ)' },
         { name: 'conf_mat', label: 'Confirm ES (م خ)' },
-        { name: 'serie', label: 'Last 5 characters of chassis number' },
+        { name: 'serie', label: 'Chassis number' },
     ],
     PE: [
         { name: 'mat', label: 'PE' },
         { name: 'conf_mat', label: 'Confirm PE' },
-        { name: 'serie', label: 'Last 5 characters of chassis number' },
+        { name: 'serie', label: 'Chassis number' },
     ],
     IT: [
         { name: 'mat', label: 'IT (ت م)' },
         { name: 'conf_mat', label: 'Confirm IT (ت م)' },
-        { name: 'serie', label: 'Last 5 characters of chassis number' },
+        { name: 'serie', label: 'Chassis number' },
     ],
     ETR: [
         { name: 'mat', label: 'Chassis Number' },
@@ -201,6 +203,10 @@ export default function CreateVisitPage() {
     const [qrVisible, setQrVisible] = useState(false)
     const [qrData, setQrData] = useState<string>('')
     const [selectedCar, setSelectedCar] = useState()
+    const [showLoader, setShowLoader] = useState(false)
+    const [updateVisitStatus, updateVisitStatusMutation] = useUpdateReservationPaymentStatusMutation()
+    const [reservationId, setReservationId] = useState()
+    const [getReservation] = useLazyGetReservationQuery()
 
     const qrCodeRef = useRef(null)
 
@@ -214,19 +220,26 @@ export default function CreateVisitPage() {
         qrCodeRef.current?.toDataURL(async (dataURL) => {
             try {
                 const path = FileSystem.cacheDirectory + `qr_code_${Date.now()}.png`
-                const imageData = dataURL.replace('data:image/png;base64,', '')
+                const base64 = dataURL.replace('data:image/png;base64,', '')
 
-                await FileSystem.writeAsStringAsync(path, imageData, {
+                // Save to local gallery (optional)
+                await FileSystem.writeAsStringAsync(path, base64, {
                     encoding: FileSystem.EncodingType.Base64,
                 })
 
                 const asset = await MediaLibrary.createAssetAsync(path)
                 await MediaLibrary.createAlbumAsync('Download', asset, false)
 
-                Alert.alert('Success', 'QR Code saved to your gallery!')
+                // ✅ Save QR image to database
+                await updateVisitStatus({
+                    id: reservationId,
+                    code: base64,
+                })
+
+                Alert.alert('Success', 'QR Code saved and uploaded to database!')
             } catch (err) {
-                console.error('Error saving QR:', err)
-                Alert.alert('Error', 'Failed to save QR code.')
+                console.error('Error saving or uploading QR:', err)
+                Alert.alert('Error', 'Failed to save or upload QR code.')
             }
         })
     }
@@ -385,10 +398,12 @@ export default function CreateVisitPage() {
 
     const handleScan = async () => {
         try {
+            setShowLoader(true)
             const ocrResult = await processImages()
             console.log('ocr', ocrResult)
 
             applyOcrResult(ocrResult)
+            setShowLoader(false)
         } catch (e) {
             console.error(e)
             alert('Erreur lors du scan OCR.')
@@ -403,6 +418,7 @@ export default function CreateVisitPage() {
                 date: `${selectedDate.toDateString()} ${selectedTimeSlot}`,
                 center_id: selectedCenter,
                 user_id: user?.id || null,
+                payment_status: 1,
             }
         } else {
             info = {
@@ -425,19 +441,20 @@ export default function CreateVisitPage() {
                 date: `${selectedDate.toDateString()} ${selectedTimeSlot}`,
                 center_id: selectedCenter,
                 user_id: user?.id || null,
+                payment_status: 1,
             }
         }
 
         try {
-            await createVisit(info).then((res) => {
+            await createVisit(info).then(async (res) => {
                 if (!res.error) {
+                    setReservationId(res.data.id)
                     setStripe(false)
-                    setQrData(JSON.stringify(res.data)) // you can encode only the ID or details if you want
                     setQrVisible(true)
 
                     Toast.show({
                         type: ALERT_TYPE.SUCCESS,
-                        title: translate('Appointment created successfully'),
+                        title: translate('Reservation created successfully'),
                     })
                 }
             })
@@ -445,10 +462,30 @@ export default function CreateVisitPage() {
             console.error(error)
             Toast.show({
                 type: ALERT_TYPE.DANGER,
-                title: translate('Failed to create appointment'),
+                title: translate('Failed to create reservation'),
             })
         }
     }
+
+    useEffect(() => {
+        if (!reservationId) return
+
+        const create = async () => {
+            await getReservation(reservationId).then((res) => {
+                const data = {
+                    center: res.data?.center.name,
+                    paid: res.data?.payment_status === 0 ? false : true,
+                    name: res.data?.car.nom,
+                    matricule: res.data?.car.matricule,
+                    date: moment(res.data?.date).locale('en').format('YYYY/MM/DD HH:mm'),
+                }
+
+                setQrData(JSON.stringify(data))
+            })
+        }
+
+        create()
+    }, [reservationId])
 
     const resetAll = () => {
         reset() // reset react-hook-form fields
@@ -471,7 +508,6 @@ export default function CreateVisitPage() {
         // handle your payment logic here
         if (selectedPaymentMethod == 'online') {
             setPaymentVisible(false)
-
             setStripe(true)
         } else {
             let info
@@ -481,6 +517,7 @@ export default function CreateVisitPage() {
                     date: `${selectedDate.toDateString()} ${selectedTimeSlot}`,
                     center_id: selectedCenter,
                     user_id: user?.id || null,
+                    payment_status: 0,
                 }
             } else {
                 info = {
@@ -503,16 +540,15 @@ export default function CreateVisitPage() {
                     date: `${selectedDate.toDateString()} ${selectedTimeSlot}`,
                     center_id: selectedCenter,
                     user_id: user?.id || null,
+                    payment_status: 0,
                 }
             }
 
             try {
                 await createVisit(info).then((res) => {
                     if (!res.error) {
-                        setModalVisible(false)
-                        setDateVisible(false)
-                        setPaymentVisible(false)
-                        resetAll()
+                        setReservationId(res.data.id)
+                        setQrVisible(true)
 
                         Toast.show({
                             type: ALERT_TYPE.SUCCESS,
@@ -560,6 +596,8 @@ export default function CreateVisitPage() {
     }
 
     const splitSerialNumber = (fullValue: string) => {
+        console.log(fullValue)
+
         if (!fullValue) return null
 
         // Remove extra whitespace, keep Arabic or Latin words in between
@@ -720,6 +758,7 @@ export default function CreateVisitPage() {
                                 title={translate(scanVisible ? 'Scan' : 'Quick scan')}
                                 backgroundColor='grey'
                                 textColor='white'
+                                hasActivityIndicator={showLoader}
                             />
                             <View
                                 style={{
@@ -1235,8 +1274,8 @@ export default function CreateVisitPage() {
                     </Pressable>
                 </Modal>
 
-                <Modal animationType='slide' transparent={true} visible={qrVisible} onRequestClose={() => setQrVisible(false)}>
-                    <Pressable onPress={() => setQrVisible(false)} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                <Modal animationType='slide' transparent={true} visible={qrVisible && qrData.length > 0}>
+                    <Pressable onPress={() => {}} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }}>
                         <View
                             onStartShouldSetResponder={() => true}
                             style={{

@@ -153,9 +153,29 @@ export const API = createApi({
             transformResponse: (response: ResponseType) => response.data,
             invalidatesTags: ['Reservation'],
         }),
+
+        updateReservationPaymentStatus: builder.mutation<Reservation, { id: number; code: string }>({
+            query: ({ id, code }) => ({
+                url: `/users/me/reservations/${id}/code`,
+                method: 'PUT',
+                body: {
+                    code: code,
+                },
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+            invalidatesTags: ['Reservation'],
+        }),
         getReservations: builder.query<Reservation[], void>({
             query: () => ({
                 url: `/users/me/reservations`,
+                method: 'GET',
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+            providesTags: ['Reservation'],
+        }),
+        getReservation: builder.query<Reservation, number>({
+            query: (id) => ({
+                url: `/users/me/reservations/${id}`,
                 method: 'GET',
             }),
             transformResponse: (response: ResponseType) => response.data,
@@ -200,4 +220,6 @@ export const {
     useGetAllReservationsQuery,
     useGetNotificationsQuery,
     useUpdateReservationMutation,
+    useUpdateReservationPaymentStatusMutation,
+    useLazyGetReservationQuery,
 } = API

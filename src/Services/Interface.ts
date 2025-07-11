@@ -39,7 +39,7 @@ export interface Reservation {
 
     car: Car
     car_id: number
-
+    payment_status: number
     center: Center
     center_id: number
     status: ReservationStatus

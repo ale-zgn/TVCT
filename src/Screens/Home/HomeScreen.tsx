@@ -7,7 +7,6 @@ import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-nat
 import {
     CarIcon,
     CheckShieldIcon,
-    ContactIcon,
     FamilyCarIcon,
     FAQIcon,
     LeftArrowIcon,
@@ -257,7 +256,7 @@ export default function HomeScreen() {
 
                                 backgroundColor: '#E0F7E5',
                             },
-                            {
+                            /*   {
                                 name: translate('Contact'),
                                 onPress: () => {
                                     //@ts-ignore
@@ -270,7 +269,7 @@ export default function HomeScreen() {
 
                                 icon: <ContactIcon />,
                                 backgroundColor: '#FFFAE8',
-                            },
+                            }, */
                         ]}
                         renderItem={({ item }) => <ServiceItem service={item} />}
                         keyExtractor={(item, index) => index.toString()}
