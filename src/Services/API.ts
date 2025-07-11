@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import * as SecureStore from 'expo-secure-store'
 import Config from '../Config'
-import { Car, Center, Reservation, User, UserCreateForm, UserNotification } from './Interface'
+import { Car, Center, Payment, Reservation, User, UserCreateForm, UserNotification } from './Interface'
 
 export interface ResponseType {
     data: any
@@ -197,6 +197,35 @@ export const API = createApi({
             transformResponse: (response: ResponseType) => response.data,
             providesTags: ['Notification'],
         }),
+
+        getPaymentIntent: builder.mutation<{ clientSecret: any }, any>({
+            query: (amount) => ({
+                url: `/create-payment-intent`,
+                method: 'POST',
+                body: { amount: amount },
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+            invalidatesTags: ['Reservation', 'Center', 'Car'],
+        }),
+
+        createPayment: builder.mutation<any, any>({
+            query: (data) => ({
+                url: `/users/me/reservations/${data.id}/payment`,
+                method: 'POST',
+                body: { amount: data.amount, method: data.method, card: data.card, user_id: data.user_id },
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+            invalidatesTags: ['Reservation', 'Center', 'Car'],
+        }),
+
+        getPayments: builder.query<Payment[], void>({
+            query: () => ({
+                url: `/users/me/payments`,
+                method: 'GET',
+            }),
+            transformResponse: (response: ResponseType) => response.data,
+            providesTags: ['Notification'],
+        }),
     }),
 })
 
@@ -222,4 +251,7 @@ export const {
     useUpdateReservationMutation,
     useUpdateReservationPaymentStatusMutation,
     useLazyGetReservationQuery,
+    useGetPaymentIntentMutation,
+    useCreatePaymentMutation,
+    useGetPaymentsQuery,
 } = API

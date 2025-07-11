@@ -11,6 +11,7 @@ import {
     FAQIcon,
     LeftArrowIcon,
     MinibusCarIcon,
+    PaymentIcon,
     PickupCarIcon,
     PossibilitiesIcon,
     PrivacyPolicyIcon,
@@ -234,11 +235,7 @@ export default function HomeScreen() {
                                 icon: <FAQIcon />,
                                 onPress: () => {
                                     //@ts-ignore
-                                    navigation.navigate('ServiceStack')
-                                    setTimeout(() => {
-                                        //@ts-ignore
-                                        navigation.navigate('FAQ')
-                                    }, 100)
+                                    navigation.navigate('ServiceStack', { screen: 'FAQ' })
                                 },
                                 backgroundColor: '#FCF0FB',
                             },
@@ -247,14 +244,20 @@ export default function HomeScreen() {
                                 icon: <PrivacyPolicyIcon />,
                                 onPress: () => {
                                     //@ts-ignore
-                                    navigation.navigate('ServiceStack')
-                                    setTimeout(() => {
-                                        //@ts-ignore
-                                        navigation.navigate('PrivacyPolicy')
-                                    }, 100)
+                                    navigation.navigate('ServiceStack', { screen: 'PrivacyPolicy' })
                                 },
 
                                 backgroundColor: '#E0F7E5',
+                            },
+                            {
+                                name: translate('Payments'),
+                                icon: <PaymentIcon />,
+                                onPress: () => {
+                                    //@ts-ignore
+                                    navigation.navigate('ServiceStack', { screen: 'Payments' })
+                                },
+
+                                backgroundColor: '#e0e6f7',
                             },
                             /*   {
                                 name: translate('Contact'),
@@ -682,6 +685,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
+
     insertTitle: {
         fontSize: wp('4.25%'),
         fontFamily: 'bold',

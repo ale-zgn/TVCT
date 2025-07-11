@@ -2,7 +2,7 @@ import * as FileSystem from 'expo-file-system'
 import * as ImagePicker from 'expo-image-picker'
 import { useState } from 'react'
 import { Alert } from 'react-native'
-const API_BASE_URL = 'http://192.168.1.19:5000/api'
+const API_BASE_URL = 'http://localhost:5000/api'
 
 const useOcrImagePicker = () => {
     const [firstImage, setFirstImage] = useState(null)
@@ -39,8 +39,7 @@ const useOcrImagePicker = () => {
         const result = await ImagePicker.launchCameraAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
-            aspect: [4, 3],
-            quality: 0.8,
+            quality: 1,
         })
 
         handlePickedImage(result, imageType)

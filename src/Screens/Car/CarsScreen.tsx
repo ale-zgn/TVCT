@@ -11,7 +11,6 @@ import { useTranslation } from '../../Services/hooks/useTranslation'
 export default function MyPropertiesScreen() {
     const { translate, language } = useTranslation()
     const { data: cars } = useGetCarsQuery({})
-    console.log('cars', cars)
 
     const navigation = useNavigation()
     // const filteredProperties = React.useMemo(() => {

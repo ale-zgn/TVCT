@@ -45,8 +45,6 @@ export default function MyPropertyDetails() {
 
     useSocket({
         onReactive: async (event) => {
-            console.log(event)
-
             if (event.model === 'Reservation') {
                 refetch()
             }
@@ -244,43 +242,48 @@ export default function MyPropertyDetails() {
 
                 {car?.reservations?.length > 0 ? (
                     car?.reservations.map((reservation, index) => (
-                        <BlurView
-                            key={reservation.id || index}
-                            intensity={10}
-                            tint='dark'
-                            style={{
-                                flexDirection: 'row',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                width: '90%',
-                                marginVertical: hp('0.5%'),
-                                padding: hp('2%'),
-                                borderRadius: 16,
-                                overflow: 'hidden',
-                            }}>
-                            <View>
-                                <Text
-                                    style={{
-                                        fontSize: wp('4%'),
-                                        fontWeight: '500',
-                                        color: '#000',
-                                        marginBottom: hp('1%'),
-                                    }}>
-                                    {translate('Car Matricule')}: {car?.matricule}{' '}
-                                    {reservation.status === ReservationStatus.PENDING && <Text style={{ fontSize: wp('3.5%'), color: '#444' }}>(pending)</Text>}
-                                </Text>
-                                <Text style={{ fontSize: wp('3.5%'), color: '#444' }}>
-                                    {translate('Visit at')} {reservation.center.name} - {moment(reservation.date).locale('en').format('DD MMM YYYY HH:mm')}
-                                </Text>
-                            </View>
-                            <Pressable
-                                onPress={() => {
-                                    setDateVisible(true)
-                                    setSelectedVisit(reservation)
+                        <>
+                            <BlurView
+                                key={reservation.id || index}
+                                intensity={10}
+                                tint='dark'
+                                style={{
+                                    flexDirection: 'row',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    width: '90%',
+                                    marginVertical: hp('0.5%'),
+                                    padding: hp('2%'),
+                                    borderRadius: 16,
+                                    overflow: 'hidden',
                                 }}>
-                                <MaterialCommunityIcons name='pencil-outline' size={24} color='black' />
-                            </Pressable>
-                        </BlurView>
+                                <View>
+                                    <Text
+                                        style={{
+                                            fontSize: wp('4%'),
+                                            fontWeight: '500',
+                                            color: '#000',
+                                            marginBottom: hp('1%'),
+                                        }}>
+                                        {translate('Car Matricule')}: {car?.matricule}{' '}
+                                        {reservation.status === ReservationStatus.PENDING && (
+                                            <Text style={{ fontSize: wp('3.5%'), color: '#444' }}>(pending)</Text>
+                                        )}
+                                    </Text>
+                                    <Text style={{ fontSize: wp('3.5%'), color: '#444' }}>
+                                        {translate('Visit at')} {reservation.center.name} - {moment(reservation.date).locale('en').format('DD MMM YYYY HH:mm')}
+                                    </Text>
+                                </View>
+                                <Pressable
+                                    onPress={() => {
+                                        setDateVisible(true)
+                                        setSelectedVisit(reservation)
+                                    }}>
+                                    <MaterialCommunityIcons name='pencil-outline' size={24} color='black' />
+                                </Pressable>
+                            </BlurView>
+                            <Image source={{ uri: `data:image/png;base64,${reservation.code}` }} style={{ marginTop: hp('3%'), width: 200, height: 200 }} />
+                        </>
                     ))
                 ) : (
                     <Text style={{ fontSize: wp('3.8%'), color: '#444' }}>{translate('You have no reservations')}</Text>

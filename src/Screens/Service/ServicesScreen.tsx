@@ -2,7 +2,7 @@ import { useNavigation } from '@react-navigation/native'
 import React from 'react'
 import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
-import { FAQIcon, LeftArrowIcon, PrivacyPolicyIcon, RightArrowIcon } from '../../../assets/svgs/Svg'
+import { FAQIcon, LeftArrowIcon, PaymentIcon, PrivacyPolicyIcon, RightArrowIcon } from '../../../assets/svgs/Svg'
 import { useTranslation } from '../../Services/hooks/useTranslation'
 
 export default function ServicesScreen() {
@@ -16,12 +16,12 @@ export default function ServicesScreen() {
             backgroundColor: '#FCF0FB',
         },
         { title: translate('Privacy policy'), icon: <PrivacyPolicyIcon />, navigation: 'PrivacyPolicy', backgroundColor: '#E0F7E5' },
-        /*   {
-            title: translate('Contact'),
-            navigation: 'Contact',
-            icon: <ContactIcon />,
-            backgroundColor: '#FFFAE8',
-        }, */
+        {
+            title: translate('Payments'),
+            navigation: 'Payments',
+            icon: <PaymentIcon />,
+            backgroundColor: '#e0e6f7',
+        },
     ]
 
     return (

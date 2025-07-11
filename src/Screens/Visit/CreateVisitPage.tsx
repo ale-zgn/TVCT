@@ -1,5 +1,6 @@
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { useRoute } from '@react-navigation/native'
+import { useStripe } from '@stripe/stripe-react-native'
 import * as FileSystem from 'expo-file-system'
 import * as MediaLibrary from 'expo-media-library'
 import moment from 'moment'
@@ -12,15 +13,18 @@ import MapView, { Marker } from 'react-native-maps'
 import QRCode from 'react-native-qrcode-svg'
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen'
 import {
+    useCreatePaymentMutation,
     useCreateReservationMutation,
     useGetCarsQuery,
     useGetCentersQuery,
+    useGetPaymentIntentMutation,
     useGetUserQuery,
     useLazyGetCarQuery,
     useLazyGetCenterAvailibilityQuery,
     useLazyGetReservationQuery,
     useUpdateReservationPaymentStatusMutation,
 } from 'src/Services/API'
+import useSocket from 'src/Services/hooks/useSocket'
 import { Car } from 'src/Services/Interface'
 import { ArrowDownIcon, PlusIcon } from '../../../assets/svgs/Svg'
 import Input from '../../Components/Shared/Input'
@@ -28,6 +32,23 @@ import MaintButton from '../../Components/Shared/MaintButton'
 import Picker from '../../Components/Shared/Picker'
 import useOcrImagePicker from '../../Services/hooks/useOcr'
 import { useTranslation } from '../../Services/hooks/useTranslation'
+
+export const defaultValues = {
+    matricule: '4596 توتس 170', // Empty if missing, user must verify
+    adresse: ' قصيبة المديوني شارع الحبيب ',
+    genre: 'سيارة خاصة',
+    nom: 'الفةالخاج”عمار حرم الامام',
+    inscrit: '2012/03/06',
+    place: '5',
+    porte: '4',
+    typemoteur: 'غازوال',
+    cin: '06772437',
+    commercial: 'C5',
+    construteur: 'CITROEN',
+    dpmc: '2012/03/06',
+    serie: 'VF7RD9HR8CL504618',
+    type: 'FCDCFWB',
+}
 
 const fieldSections = [
     {
@@ -193,7 +214,7 @@ export default function CreateVisitPage() {
     const car_id = route?.params?.car_id
     const { data: user } = useGetUserQuery({})
     const { data: centers } = useGetCentersQuery()
-    const { data: userCars } = useGetCarsQuery({})
+    const { data: userCars, refetch } = useGetCarsQuery({})
     const [car, setCar] = useState<Car | null>(null)
     const [selectedCenter, setSelectedCenter] = useState()
     const [getCar] = useLazyGetCarQuery()
@@ -207,8 +228,95 @@ export default function CreateVisitPage() {
     const [updateVisitStatus, updateVisitStatusMutation] = useUpdateReservationPaymentStatusMutation()
     const [reservationId, setReservationId] = useState()
     const [getReservation] = useLazyGetReservationQuery()
+    const [getIntent] = useGetPaymentIntentMutation()
+    const [createPayment] = useCreatePaymentMutation()
 
     const qrCodeRef = useRef(null)
+
+    const {
+        control,
+        handleSubmit,
+        formState: { errors },
+        setValue,
+        getValues,
+        reset,
+    } = useForm()
+
+    const { initPaymentSheet, presentPaymentSheet } = useStripe()
+
+    useSocket({
+        onReactive: async (event) => {
+            if (event.model === 'Reservation') {
+                refetch()
+            }
+        },
+    })
+
+    const openPaymentSheet = async () => {
+        const { clientSecret } = await getIntent(500).unwrap()
+
+        const { error: initError } = await initPaymentSheet({
+            paymentIntentClientSecret: clientSecret,
+            merchantDisplayName: 'TVCT', // ✅ Set it here instead!
+        })
+
+        if (initError) {
+            Alert.alert('Error', initError.message)
+            return
+        }
+
+        const { error: paymentError } = await presentPaymentSheet()
+
+        if (paymentError) {
+            Alert.alert('Payment failed', paymentError.message)
+        } else {
+            const data = getValues()
+            const info = {
+                car_info: {
+                    matricule: data.matricule,
+                    adresse: data.adresse,
+                    genre: data.genre,
+                    nom: data.nom,
+                    inscrit: data.inscrit,
+                    place: data.place,
+                    porte: data.porte,
+                    typemoteur: data.typemoteur,
+                    cin: data.cin,
+                    commercial: data.commercial,
+                    construteur: data.construteur,
+                    dpmc: data.dpmc,
+                    serie: data.serie,
+                    type: data.type,
+                },
+                date: `${selectedDate.toDateString()} ${selectedTimeSlot}`,
+                center_id: selectedCenter,
+                user_id: user?.id || null,
+                payment_status: 1,
+            }
+
+            try {
+                await createVisit(info).then(async (res) => {
+                    if (!res.error) {
+                        setReservationId(res.data.id)
+                        setPaymentVisible(false)
+                        setStripe(false)
+                        setQrVisible(true)
+
+                        Toast.show({
+                            type: ALERT_TYPE.SUCCESS,
+                            title: translate('Reservation created successfully'),
+                        })
+                    }
+                })
+            } catch (error: any) {
+                console.error(error)
+                Toast.show({
+                    type: ALERT_TYPE.DANGER,
+                    title: translate('Failed to create reservation'),
+                })
+            }
+        }
+    }
 
     const saveQrToDisk = async () => {
         const { status } = await MediaLibrary.requestPermissionsAsync()
@@ -295,14 +403,6 @@ export default function CreateVisitPage() {
         loadCar()
     }, [selectedCar])
 
-    const {
-        control,
-        handleSubmit,
-        formState: { errors },
-        setValue,
-        reset,
-    } = useForm()
-
     useEffect(() => {
         if (car) {
             reset({
@@ -330,51 +430,44 @@ export default function CreateVisitPage() {
         const fields = conditionalFields[pickerValue]
         if (!fields || fields.length < 2) return
 
-        const prefixType = ['TU', 'PE', 'PAT', 'CMD', 'CD', 'MD', 'MC', 'CC'].includes(pickerValue)
+        Object.entries(defaultValues).forEach(([fieldName, defaultVal]) => {
+            const ocrValue = dataFromApi[fieldName]
+            const finalValue = ocrValue && ocrValue.length > 0 ? ocrValue : defaultVal
 
-        Object.entries(dataFromApi).forEach(([ocrField, value]) => {
-            if (value === undefined || value === null) return
-
-            const mappedName = ocrField
-            if (!mappedName) return
-
-            const isMatriculeField = ['matricule', 'mat'].includes(ocrField) && fields[0].name === 'mat' && fields[1].name === 'conf_mat'
+            const isMatriculeField = ['matricule', 'mat'].includes(fieldName) && fields[0].name === 'mat' && fields[1].name === 'conf_mat'
 
             if (isMatriculeField) {
-                setValue(`matricule`, value, {
+                setValue('matricule', finalValue, {
                     shouldDirty: true,
                     shouldValidate: true,
                 })
-                const parts = splitSerialNumber(value)
-                console.log(parts)
 
+                const parts = splitSerialNumber(finalValue)
                 if (parts) {
-                    const primary = isMatriculeField ? 'mat' : mappedName
-                    const confirm = isMatriculeField ? 'conf_mat' : fields.find((f) => f.name !== primary)?.name
+                    const primary = 'mat'
+                    const confirm = 'conf_mat'
 
-                    setValue(`${primary}_prefix`, parts.firstPart, {
+                    setValue(`${primary}_prefix`, parts.firstPart ?? '', {
                         shouldDirty: true,
                         shouldValidate: true,
                     })
-                    setValue(`${primary}_suffix`, parts.lastPart, {
+                    setValue(`${primary}_suffix`, parts.lastPart ?? '', {
                         shouldDirty: true,
                         shouldValidate: true,
                     })
 
-                    if (confirm) {
-                        setValue(`${confirm}_prefix`, parts.firstPart, {
-                            shouldDirty: true,
-                            shouldValidate: true,
-                        })
-                        setValue(`${confirm}_suffix`, parts.lastPart, {
-                            shouldDirty: true,
-                            shouldValidate: true,
-                        })
-                    }
+                    setValue(`${confirm}_prefix`, parts.firstPart ?? '', {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                    })
+                    setValue(`${confirm}_suffix`, parts.lastPart ?? '', {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                    })
                 }
             } else {
-                // Non-prefix or unrelated fields
-                setValue(mappedName, value, {
+                // All other fields
+                setValue(fieldName, finalValue, {
                     shouldDirty: true,
                     shouldValidate: true,
                 })
@@ -482,6 +575,8 @@ export default function CreateVisitPage() {
 
                 setQrData(JSON.stringify(data))
             })
+
+            await createPayment({ id: reservationId, amount: 5, method: 'online', card: '4242424242424242', user_id: user?.id })
         }
 
         create()
@@ -507,8 +602,9 @@ export default function CreateVisitPage() {
     const handleConfirmPayment = async (data) => {
         // handle your payment logic here
         if (selectedPaymentMethod == 'online') {
-            setPaymentVisible(false)
-            setStripe(true)
+            openPaymentSheet()
+            /*  setPaymentVisible(false)
+            setStripe(true) */
         } else {
             let info
             if (car) {
@@ -596,13 +692,10 @@ export default function CreateVisitPage() {
     }
 
     const splitSerialNumber = (fullValue: string) => {
-        console.log(fullValue)
-
         if (!fullValue) return null
 
         // Remove extra whitespace, keep Arabic or Latin words in between
         const cleaned = fullValue.trim().replace(/\s+/g, ' ')
-        console.log('cleaned', cleaned)
 
         // Match common Tunisian plate formats: 4 digits, middle word, 3 digits
         const match = cleaned.match(/^(\d{3,4})\s+[^\d]+\s+(\d{2,4})$/)
@@ -672,9 +765,12 @@ export default function CreateVisitPage() {
                         <Picker
                             title='Select Car'
                             onValueChange={(value) => setSelectedCar(value)}
-                            items={userCars?.map((car) => {
-                                return { label: car.matricule, value: car.id }
-                            })}
+                            items={userCars
+                                ?.filter((car) => !Array.isArray(car.reservations) || car.reservations.length === 0)
+                                .map((car) => ({
+                                    label: car.matricule,
+                                    value: car.id,
+                                }))}
                             value={selectedCar}
                             placeholder={'Select Car'}
                             // @ts-ignore
@@ -851,7 +947,7 @@ export default function CreateVisitPage() {
                                                 placeholder=''
                                                 control={control}
                                                 rules={{
-                                                    required: `${translate('This field is required')}`,
+                                                    required: false,
                                                 }}
                                                 errors={errors}
                                                 containerStyle={{ width: wp('90%') }}

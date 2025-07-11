@@ -10,6 +10,7 @@ import { useTabStyle } from '../../Services/hooks/NavigationTabStyle'
 import { useTranslation } from '../../Services/hooks/useTranslation'
 
 import React from 'react'
+import PaymentsScreen from 'src/Screens/Service/Payment/PaymentsScreen'
 import { headerTitleStyle } from '../../Screens/Service/HeaderTitleStyle'
 
 const ServiceStack = createNativeStackNavigator()
@@ -107,6 +108,17 @@ export default function ServiceStackScreen() {
                 options={{
                     headerLeft: () => <DefaultHeaderLeft />,
                     title: `${translate('Privacy Policy')}`,
+                    headerTitleStyle: headerTitleStyle,
+                    headerTitleAlign: 'center',
+                }}
+            />
+
+            <ServiceStack.Screen
+                name='Payments'
+                component={PaymentsScreen}
+                options={{
+                    headerLeft: () => <DefaultHeaderLeft />,
+                    title: `${translate('Payments')}`,
                     headerTitleStyle: headerTitleStyle,
                     headerTitleAlign: 'center',
                 }}
